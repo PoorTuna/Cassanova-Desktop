@@ -1,41 +1,56 @@
 # Cassanova Desktop
 
-A Lens-style cross-platform desktop client for managing multiple
-[Cassanova](https://github.com/PoorTuna/Cassanova) instances from a single app.
+Desktop client for [Cassanova](https://github.com/PoorTuna/Cassanova).
+Manages multiple instances from a single application.
 
-## Status
+## Requirements
 
-Early scaffold. See the implementation plan in the commit history. Phases:
-
-- **Phase 0** — scaffold, toolchain, CI _(in progress)_
-- **Phase 1** — minimum viable shell: sidebar + single webview
-- **Phase 2** — credential vault (keytar) + auto-auth via cookie injection
-- **Phase 3** — self-signed cert trust-on-first-use + health indicators
-- **Phase 4** — packaging, signing, auto-update
-- **Phase 5** — polish
-
-## Architecture
-
-Cassanova Desktop is a thin Electron shell. Each configured Cassanova instance
-loads in its own `<webview>` with an isolated cookie partition. Credentials are
-stored in the OS keychain via `keytar`. The main process performs authentication
-by POSTing to each instance's `/login` endpoint and injecting the returned
-`access_token` cookie into the webview's session, so users land inside Cassanova
-already logged in.
+- Node.js — version pinned in [`.nvmrc`](./.nvmrc)
 
 ## Develop
 
-```bash
+```
 npm install
 npm run dev
 ```
 
 ## Build
 
-```bash
-npm run build       # bundle main/preload/renderer
-npm run package     # build + platform installer via electron-builder
 ```
+npm run build          # compile main, preload, renderer
+npm run package        # build + host-platform installer
+npm run package:win    # nsis
+npm run package:mac    # dmg + zip, x64 + arm64
+npm run package:linux  # AppImage + deb
+```
+
+## Scripts
+
+| Command | |
+| --- | --- |
+| `npm run dev` | Electron dev server with HMR |
+| `npm run build` | Production bundle for all three processes |
+| `npm run typecheck` | `tsc --noEmit` on node and web tsconfigs |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier write |
+
+## Architecture
+
+Electron with separate main, preload, and renderer processes.
+
+Each configured Cassanova instance renders in its own `<webview>` tag
+bound to a dedicated `session` partition, so cookies and storage are
+isolated between instances.
+
+Credentials live in the OS keychain through `keytar` and never reach the
+renderer. The main process authenticates by POSTing to the instance's
+`/login` endpoint and writing the returned `access_token` cookie into
+the matching webview session, so the user lands inside Cassanova
+already signed in.
+
+Self-signed certificates are handled with trust-on-first-use fingerprint
+pinning per instance; a fingerprint mismatch on subsequent connects
+raises a hard error rather than silently accepting the new cert.
 
 ## License
 
