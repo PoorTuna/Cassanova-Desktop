@@ -1,0 +1,80 @@
+import { useMatchRoute, useNavigate } from '@tanstack/react-router'
+import type { Instance } from '@shared/models'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
+import { StatusDot } from '@/components/status-dot'
+import { cn } from '@/lib/utils'
+import { useInstanceActions } from './use-instance-actions'
+
+interface Props {
+  instance: Instance
+}
+
+export function InstanceRow({ instance }: Props) {
+  const navigate = useNavigate()
+  const matchRoute = useMatchRoute()
+  const { openEdit, openDuplicate, requestDelete } = useInstanceActions()
+
+  const isActive = !!matchRoute({
+    to: '/instances/$instanceId',
+    params: { instanceId: instance.id },
+  })
+
+  const onActivate = () => {
+    navigate({
+      to: '/instances/$instanceId',
+      params: { instanceId: instance.id },
+    }).catch(() => {})
+  }
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <button
+          type="button"
+          onClick={onActivate}
+          aria-current={isActive ? 'page' : undefined}
+          className={cn(
+            'group relative flex h-[34px] w-full items-center gap-2 rounded-md px-2 text-left transition-colors duration-150',
+            'hover:bg-cass-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cass-brand-primary/40',
+            isActive && 'bg-cass-hover-active shadow-[inset_3px_0_0_var(--cass-brand-primary)]',
+          )}
+        >
+          <StatusDot status={instance.lastStatus} />
+          <span className="flex min-w-0 flex-1 flex-col leading-tight">
+            <span
+              className={cn(
+                'truncate text-[13px] font-medium',
+                isActive ? 'text-cass-text-primary' : 'text-cass-text-primary/90',
+              )}
+            >
+              {instance.name}
+            </span>
+            <span className="truncate text-[11px] text-cass-text-muted">
+              {instance.url}
+            </span>
+          </span>
+        </button>
+      </ContextMenuTrigger>
+
+      <ContextMenuContent className="border-cass-border bg-cass-surface">
+        <ContextMenuItem onSelect={() => openEdit(instance)}>Edit…</ContextMenuItem>
+        <ContextMenuItem onSelect={() => openDuplicate(instance.id)}>
+          Duplicate
+        </ContextMenuItem>
+        <ContextMenuSeparator className="bg-cass-border" />
+        <ContextMenuItem
+          onSelect={() => requestDelete(instance)}
+          className="text-cass-danger focus:bg-cass-danger/15 focus:text-cass-danger"
+        >
+          Delete…
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  )
+}
