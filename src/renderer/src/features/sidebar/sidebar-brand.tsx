@@ -1,15 +1,29 @@
 import { Logo } from '@/components/logo'
+import { cn } from '@/lib/utils'
 
-export function SidebarBrand() {
+interface Props {
+  collapsed?: boolean
+}
+
+export function SidebarBrand({ collapsed = false }: Props) {
   return (
-    <div className="flex items-center gap-3 px-5 pb-4 pt-5">
-      <Logo className="h-8 w-8" />
-      <div className="min-w-0">
-        <div className="truncate font-display text-sm font-semibold leading-none text-cass-text-primary">
-          Cassanova
+    <div
+      className={cn(
+        'flex items-center pb-4 pt-5',
+        collapsed ? 'justify-center px-2' : 'gap-3 px-5',
+      )}
+    >
+      <Logo className="h-8 w-8 shrink-0" />
+      {!collapsed && (
+        <div className="min-w-0">
+          <div className="truncate font-display text-sm font-semibold leading-none text-cass-text-primary">
+            Cassanova
+          </div>
+          <div className="mt-1 truncate text-xs text-cass-text-muted">
+            Desktop
+          </div>
         </div>
-        <div className="mt-1 truncate text-xs text-cass-text-muted">Desktop</div>
-      </div>
+      )}
     </div>
   )
 }

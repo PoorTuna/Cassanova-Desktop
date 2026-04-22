@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { ArrowUpRight, Copy, Pencil, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
@@ -9,6 +9,8 @@ import {
   InstanceWebview,
   type InstanceWebviewHandle,
 } from '@/features/instances/instance-webview'
+import { webviewRegistry } from '@/features/instances/webview-registry'
+import { useUiStore } from '@/app/ui-store'
 import { cassanova } from '@/lib/ipc'
 
 export function InstanceDetail() {
@@ -18,8 +20,25 @@ export function InstanceDetail() {
     s.instances.find((i) => i.id === params.instanceId),
   )
   const openEdit = useInstanceStore((s) => s.openEdit)
+  const togglePalette = useUiStore((s) => s.togglePalette)
+  const toggleSidebar = useUiStore((s) => s.toggleSidebar)
   const navigate = useNavigate()
   const webviewRef = useRef<InstanceWebviewHandle>(null)
+
+  const instanceId = instance?.id
+  useEffect(() => {
+    if (!instanceId) return
+    const handle: InstanceWebviewHandle = {
+      reload: () => webviewRef.current?.reload(),
+    }
+    return webviewRegistry.register(instanceId, handle)
+  }, [instanceId])
+
+  const onWebviewShortcut = (key: string) => {
+    if (key === 'k') togglePalette()
+    else if (key === 'b') toggleSidebar()
+    else if (key === 'r') webviewRef.current?.reload()
+  }
 
   if (!hydrated) {
     return null
@@ -115,6 +134,7 @@ export function InstanceDetail() {
           key={instance.id}
           ref={webviewRef}
           instance={instance}
+          onShortcut={onWebviewShortcut}
         />
       </div>
     </div>

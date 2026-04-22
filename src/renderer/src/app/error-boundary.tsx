@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { cassanova } from '@/lib/ipc'
 
 interface Props {
   children: ReactNode
@@ -8,6 +9,8 @@ interface Props {
 interface State {
   error: Error | null
 }
+
+const ISSUES_URL = 'https://github.com/PoorTuna/Cassanova-Desktop/issues'
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null }
@@ -21,6 +24,14 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('ErrorBoundary caught:', error, info)
   }
 
+  private handleReport = () => {
+    cassanova()
+      .app.openExternal(ISSUES_URL)
+      .catch(() => {
+        window.open(ISSUES_URL, '_blank', 'noopener')
+      })
+  }
+
   render() {
     if (this.state.error) {
       return (
@@ -32,7 +43,12 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="mb-6 text-sm text-cass-text-secondary">
               {this.state.error.message}
             </p>
-            <Button onClick={() => window.location.reload()}>Reload</Button>
+            <div className="flex items-center justify-center gap-2">
+              <Button onClick={() => window.location.reload()}>Reload</Button>
+              <Button variant="outline" onClick={this.handleReport}>
+                Report issue
+              </Button>
+            </div>
           </div>
         </div>
       )

@@ -13,9 +13,10 @@ import { useInstanceActions } from './use-instance-actions'
 
 interface Props {
   instance: Instance
+  collapsed?: boolean
 }
 
-export function InstanceRow({ instance }: Props) {
+export function InstanceRow({ instance, collapsed = false }: Props) {
   const navigate = useNavigate()
   const matchRoute = useMatchRoute()
   const { openEdit, openDuplicate, requestDelete } = useInstanceActions()
@@ -39,26 +40,32 @@ export function InstanceRow({ instance }: Props) {
           type="button"
           onClick={onActivate}
           aria-current={isActive ? 'page' : undefined}
+          title={collapsed ? `${instance.name}\n${instance.url}` : undefined}
           className={cn(
-            'group relative flex h-[34px] w-full items-center gap-2 rounded-md px-2 text-left transition-colors duration-150',
+            'group relative flex h-[34px] w-full items-center rounded-md text-left transition-colors duration-150',
             'hover:bg-cass-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cass-brand-primary/40',
+            collapsed ? 'justify-center px-0' : 'gap-2 px-2',
             isActive && 'bg-cass-hover-active shadow-[inset_3px_0_0_var(--cass-brand-primary)]',
           )}
         >
           <StatusDot status={instance.lastStatus} />
-          <span className="flex min-w-0 flex-1 flex-col leading-tight">
-            <span
-              className={cn(
-                'truncate text-[13px] font-medium',
-                isActive ? 'text-cass-text-primary' : 'text-cass-text-primary/90',
-              )}
-            >
-              {instance.name}
+          {!collapsed && (
+            <span className="flex min-w-0 flex-1 flex-col leading-tight">
+              <span
+                className={cn(
+                  'truncate text-[13px] font-medium',
+                  isActive
+                    ? 'text-cass-text-primary'
+                    : 'text-cass-text-primary/90',
+                )}
+              >
+                {instance.name}
+              </span>
+              <span className="truncate text-[11px] text-cass-text-muted">
+                {instance.url}
+              </span>
             </span>
-            <span className="truncate text-[11px] text-cass-text-muted">
-              {instance.url}
-            </span>
-          </span>
+          )}
         </button>
       </ContextMenuTrigger>
 
