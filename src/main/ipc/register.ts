@@ -1,6 +1,7 @@
 import { app, ipcMain, shell } from 'electron'
 import type { BrowserWindow } from 'electron'
 import { join } from 'path'
+import { pathToFileURL } from 'url'
 import { IpcChannels } from '@shared/ipc-contract'
 import { registerInstancesHandlers } from './instances-handler'
 import { registerWindowHandlers } from './window-handler'
@@ -17,6 +18,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
     return shell.openExternal(url)
   })
   ipcMain.handle(IpcChannels.appWebviewPreloadPath, () => {
-    return join(__dirname, 'webview-preload.js')
+    const path = join(__dirname, '..', 'preload', 'webview-preload.js')
+    return pathToFileURL(path).href
   })
 }
