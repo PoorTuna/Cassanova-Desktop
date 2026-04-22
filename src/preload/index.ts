@@ -1,9 +1,14 @@
 import { contextBridge } from 'electron'
+import { instancesApi } from './api/instances'
+import { windowApi } from './api/window'
+import { appApi } from './api/app'
+import type { CassanovaAPI } from './types'
 
-// Placeholder bridge. Phase 2 expands this with vault/instance/cert surfaces.
-const api = {
-  platform: process.platform,
-} as const
+const api: CassanovaAPI = {
+  instances: instancesApi,
+  window: windowApi,
+  app: appApi,
+}
 
 try {
   contextBridge.exposeInMainWorld('cassanova', api)
@@ -11,5 +16,3 @@ try {
   // eslint-disable-next-line no-console
   console.error('Failed to expose cassanova API via contextBridge:', error)
 }
-
-export type CassanovaAPI = typeof api

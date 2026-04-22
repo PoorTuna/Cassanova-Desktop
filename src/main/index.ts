@@ -1,61 +1,21 @@
-import { app, BrowserWindow, shell } from 'electron'
-import { join } from 'path'
+import { app, BrowserWindow, shell, Menu } from 'electron'
+import { createMainWindow } from './window'
+import { registerIpcHandlers } from './ipc/register'
+import { buildAppMenu } from './menu'
 
-const isDev = !app.isPackaged
+app.whenReady().then(() => {
+  const mainWindow = createMainWindow()
 
-function createWindow(): BrowserWindow {
-  const isMac = process.platform === 'darwin'
-
-  const mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    minWidth: 960,
-    minHeight: 600,
-    show: false,
-    frame: false,
-    backgroundColor: '#0b1220',
-    titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
-    ...(isMac
-      ? { trafficLightPosition: { x: 12, y: 12 } }
-      : {
-          titleBarOverlay: {
-            color: '#0b1220',
-            symbolColor: '#ffffff',
-            height: 36,
-          },
-        }),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-      contextIsolation: true,
-      webviewTag: true,
-    },
-  })
-
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
+  registerIpcHandlers(mainWindow)
+  Menu.setApplicationMenu(buildAppMenu(mainWindow))
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)
     return { action: 'deny' }
   })
 
-  const devUrl = process.env['ELECTRON_RENDERER_URL']
-  if (isDev && devUrl) {
-    mainWindow.loadURL(devUrl)
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
-
-  return mainWindow
-}
-
-app.whenReady().then(() => {
-  createWindow()
-
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
   })
 })
 

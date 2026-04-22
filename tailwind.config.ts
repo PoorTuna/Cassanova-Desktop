@@ -13,7 +13,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"Inter Variable"', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono Variable"', '"JetBrains Mono"', 'monospace'],
+        display: ['"Outfit Variable"', 'Outfit', 'system-ui', 'sans-serif'],
+        mono: ['"Fira Code"', '"Fira Mono"', 'monospace'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -49,11 +50,58 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        /* Cassanova design system */
+        cass: {
+          app: 'var(--cass-bg-app)',
+          sidebar: 'var(--cass-bg-sidebar)',
+          surface: 'var(--cass-bg-surface)',
+          elevated: 'var(--cass-bg-elevated)',
+          glass: 'var(--cass-bg-glass)',
+          'glass-border': 'var(--cass-glass-border)',
+          hover: 'var(--cass-hover)',
+          'hover-active': 'var(--cass-hover-active)',
+          pressed: 'var(--cass-pressed)',
+          brand: {
+            DEFAULT: 'var(--cass-brand-primary)',
+            hover: 'var(--cass-brand-primary-hover)',
+            active: 'var(--cass-brand-primary-active)',
+            secondary: 'var(--cass-brand-secondary)',
+          },
+          text: {
+            primary: 'var(--cass-text-primary)',
+            secondary: 'var(--cass-text-secondary)',
+            muted: 'var(--cass-text-muted)',
+            subtle: 'var(--cass-text-subtle)',
+          },
+          border: {
+            DEFAULT: 'var(--cass-border)',
+            strong: 'var(--cass-border-strong)',
+          },
+          success: 'var(--cass-success)',
+          warning: 'var(--cass-warning)',
+          danger: 'var(--cass-danger)',
+          info: 'var(--cass-info)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        'cass-sm': 'var(--cass-shadow-sm)',
+        'cass-md': 'var(--cass-shadow-md)',
+        'cass-lg': 'var(--cass-shadow-lg)',
+      },
+      width: {
+        sidebar: '260px',
+        'sidebar-collapsed': '80px',
+      },
+      height: {
+        titlebar: '36px',
+      },
+      transitionTimingFunction: {
+        sidebar: 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
     },
   },
