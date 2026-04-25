@@ -9,11 +9,12 @@ import { getLogger } from './_logger'
 
 // crashReporter must start before app is ready so Crashpad attaches to all
 // processes spawned afterwards. uploadToServer:false keeps minidumps local
-// under userData/Crashpad/ for offline triage.
+// under userData/Crashpad/. Electron treats submitURL as required even when
+// uploadToServer is false, so we pass an unused localhost placeholder.
 crashReporter.start({
   productName: 'Cassanova Desktop',
   companyName: 'Cassanova',
-  submitURL: '',
+  submitURL: 'https://localhost/_unused',
   uploadToServer: false,
   ignoreSystemCrashHandler: false,
 })
