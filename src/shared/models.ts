@@ -18,6 +18,8 @@ export interface Instance {
   pinnedCertFingerprint?: string
   /** Last observed status. Live status comes from the health poller. */
   lastStatus?: InstanceStatus
+  /** ISO timestamp of the last health probe. */
+  lastCheckedAt?: string
   createdAt: string
   updatedAt: string
 }

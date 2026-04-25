@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, Menu, nativeTheme } from 'electron'
 import { createMainWindow } from './window'
 import { registerIpcHandlers } from './ipc/register'
 import { buildAppMenu } from './menu'
+import { startHealthPoller } from './health/poller'
 import { IpcChannels } from '@shared/ipc-contract'
 
 nativeTheme.themeSource = 'dark'
@@ -11,6 +12,7 @@ app.whenReady().then(() => {
 
   registerIpcHandlers(mainWindow)
   Menu.setApplicationMenu(buildAppMenu(mainWindow))
+  startHealthPoller()
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)

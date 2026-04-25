@@ -1,6 +1,6 @@
 import { useMatchRoute, useNavigate } from '@tanstack/react-router'
 import { Lock } from 'lucide-react'
-import type { Instance } from '@shared/models'
+import type { Instance, InstanceStatus } from '@shared/models'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -29,6 +29,8 @@ export function InstanceRow({ instance, collapsed = false }: Props) {
     params: { instanceId: instance.id },
   })
 
+  const tooltip = buildTooltip(instance, collapsed)
+
   const onActivate = () => {
     navigate({
       to: '/instances/$instanceId',
@@ -43,7 +45,7 @@ export function InstanceRow({ instance, collapsed = false }: Props) {
           type="button"
           onClick={onActivate}
           aria-current={isActive ? 'page' : undefined}
-          title={collapsed ? `${instance.name}\n${instance.url}` : undefined}
+          title={tooltip}
           className={cn(
             'group relative flex h-[34px] w-full items-center rounded-md text-left transition-colors duration-150',
             'hover:bg-cass-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cass-brand-primary/40',
@@ -96,4 +98,33 @@ export function InstanceRow({ instance, collapsed = false }: Props) {
       </ContextMenuContent>
     </ContextMenu>
   )
+}
+
+const STATUS_LABEL: Record<InstanceStatus, string> = {
+  unknown: 'Status unknown',
+  reachable: 'Reachable',
+  healthy: 'Healthy',
+  'auth-expired': 'Auth expired',
+  unreachable: 'Unreachable',
+}
+
+function buildTooltip(instance: Instance, collapsed: boolean): string {
+  const status = instance.lastStatus ?? 'unknown'
+  const lines: string[] = []
+  if (collapsed) lines.push(instance.name, instance.url)
+  lines.push(STATUS_LABEL[status])
+  if (instance.lastCheckedAt) {
+    lines.push(`Last checked ${relativeTime(instance.lastCheckedAt)}`)
+  }
+  return lines.join('\n')
+}
+
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime()
+  const seconds = Math.max(0, Math.round((Date.now() - then) / 1000))
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.round(minutes / 60)
+  return `${hours}h ago`
 }
