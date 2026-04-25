@@ -84,10 +84,7 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       if (!el) return
 
       const markReady = () =>
-        setState((prev) => (prev.kind === 'error' ? prev : { kind: 'ready' }))
-      const onStart = () => setState({ kind: 'loading' })
-      const onStop = markReady
-      const onFinish = markReady
+        setState((prev) => (prev.kind === 'error' || prev.kind === 'ready' ? prev : { kind: 'ready' }))
       const onDomReady = () => {
         markReady()
         // Windows forced-colors mode (high-contrast / nativeTheme=dark interaction)
@@ -111,30 +108,33 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
         if (payload?.key) onShortcut?.(payload.key)
       }
 
-      el.addEventListener('did-start-loading', onStart)
-      el.addEventListener('did-stop-loading', onStop)
-      el.addEventListener('did-finish-load', onFinish)
+      // Only treat dom-ready / did-stop-loading / did-finish-load as ready
+      // signals. Don't flip back to 'loading' on intra-webview navigations —
+      // once the page is interactive the overlay must never reappear, since
+      // an absolutely-positioned overlay would block pointer events.
+      el.addEventListener('did-stop-loading', markReady)
+      el.addEventListener('did-finish-load', markReady)
+      el.addEventListener('dom-ready', onDomReady)
       el.addEventListener('did-fail-load', onFail)
       el.addEventListener('ipc-message', onIpc)
-      el.addEventListener('dom-ready', onDomReady)
 
-      // Reconcile against current webview state in case loading already finished
-      // before the listeners attached (effects run after render, but the webview
-      // tag may have already fired did-stop-loading by then).
+      // Hard fallback: even if every event is missed (race between mount and
+      // event dispatch), drop the overlay after 4s so the UI can never lock.
+      const fallback = setTimeout(markReady, 4000)
+
       try {
         if (!el.isLoading()) markReady()
       } catch {
-        // isLoading() throws before the guest is attached — listeners will catch
-        // the next event.
+        // isLoading() throws before the guest is attached.
       }
 
       return () => {
-        el.removeEventListener('did-start-loading', onStart)
-        el.removeEventListener('did-stop-loading', onStop)
-        el.removeEventListener('did-finish-load', onFinish)
+        clearTimeout(fallback)
+        el.removeEventListener('did-stop-loading', markReady)
+        el.removeEventListener('did-finish-load', markReady)
+        el.removeEventListener('dom-ready', onDomReady)
         el.removeEventListener('did-fail-load', onFail)
         el.removeEventListener('ipc-message', onIpc)
-        el.removeEventListener('dom-ready', onDomReady)
       }
     }, [preloadPath, onShortcut])
 
@@ -197,7 +197,7 @@ function FullSkeleton({ overlay = false }: { overlay?: boolean }) {
     <div
       className={
         overlay
-          ? 'absolute inset-0 flex items-center justify-center bg-cass-app/95'
+          ? 'pointer-events-none absolute inset-0 flex items-center justify-center bg-cass-app/95'
           : 'flex h-full w-full items-center justify-center bg-cass-app'
       }
     >
