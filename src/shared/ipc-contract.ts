@@ -42,6 +42,13 @@ export const IpcChannels = {
   certsPromptResponse: 'certs:promptResponse',
   certsMismatch: 'certs:mismatch',
   certsRevoke: 'certs:revoke',
+
+  // Updater — electron-updater wrapper. autoDownload off; user opts in.
+  updaterCheck: 'updater:check',
+  updaterDownload: 'updater:download',
+  updaterInstall: 'updater:install',
+  updaterGetStatus: 'updater:getStatus',
+  updaterStatus: 'updater:status',
 } as const
 
 export type MenuAction = 'newInstance' | 'openSettings' | 'reload' | 'toggleSidebar'
@@ -80,3 +87,18 @@ export interface CertMismatchPayload {
   pinnedFingerprint: string
   seenFingerprint: string
 }
+
+export type UpdaterStatus =
+  | { phase: 'idle' }
+  | { phase: 'checking' }
+  | { phase: 'available'; version: string; releaseDate?: string }
+  | { phase: 'not-available'; version: string }
+  | {
+      phase: 'downloading'
+      percent: number
+      bytesPerSecond: number
+      transferred: number
+      total: number
+    }
+  | { phase: 'downloaded'; version: string }
+  | { phase: 'error'; message: string }

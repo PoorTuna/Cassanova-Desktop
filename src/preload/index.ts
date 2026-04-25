@@ -5,6 +5,7 @@ import { appApi } from './api/app'
 import { vaultApi } from './api/vault'
 import { authApi } from './api/auth'
 import { certsApi } from './api/certs'
+import { updaterApi } from './api/updater'
 import type { CassanovaAPI } from './types'
 
 const api: CassanovaAPI = {
@@ -14,6 +15,7 @@ const api: CassanovaAPI = {
   vault: vaultApi,
   auth: authApi,
   certs: certsApi,
+  updater: updaterApi,
 }
 
 try {

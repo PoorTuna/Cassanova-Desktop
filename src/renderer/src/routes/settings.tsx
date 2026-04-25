@@ -13,6 +13,7 @@ import {
 import { cassanova } from '@/lib/ipc'
 import { useUiStore } from '@/app/ui-store'
 import { useInstanceStore } from '@/features/instances/instance-store'
+import { UpdatesSection } from '@/features/updater/updates-section'
 
 export function Settings() {
   const [version, setVersion] = useState<string>('—')
@@ -113,6 +114,12 @@ export function Settings() {
               ))}
             </ul>
           )}
+        </Section>
+
+        <Separator className="my-6 bg-cass-border" />
+
+        <Section title="Updates">
+          <UpdatesSection />
         </Section>
 
         <Separator className="my-6 bg-cass-border" />

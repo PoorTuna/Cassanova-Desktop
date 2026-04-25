@@ -8,6 +8,7 @@ import { registerWindowHandlers } from './window-handler'
 import { registerVaultHandlers } from './vault-handler'
 import { registerAuthHandlers } from './auth-handler'
 import { registerCertHandlers } from '../certs/cert-manager'
+import { registerUpdaterHandlers } from '../updater'
 
 export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerInstancesHandlers()
@@ -15,6 +16,7 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
   registerVaultHandlers()
   registerAuthHandlers()
   registerCertHandlers()
+  registerUpdaterHandlers()
 
   ipcMain.handle(IpcChannels.appPlatform, () => process.platform)
   ipcMain.handle(IpcChannels.appVersion, () => {

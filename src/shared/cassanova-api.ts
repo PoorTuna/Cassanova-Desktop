@@ -5,6 +5,7 @@ import type {
   CertPromptResponse,
   LoginResult,
   MenuAction,
+  UpdaterStatus,
   VaultRecord,
 } from './ipc-contract'
 
@@ -50,6 +51,14 @@ export interface CassanovaCertsAPI {
   onMismatch: (callback: (payload: CertMismatchPayload) => void) => () => void
 }
 
+export interface CassanovaUpdaterAPI {
+  check: () => Promise<void>
+  download: () => Promise<void>
+  install: () => Promise<void>
+  getStatus: () => Promise<UpdaterStatus>
+  onStatus: (callback: (status: UpdaterStatus) => void) => () => void
+}
+
 export interface CassanovaAPI {
   instances: CassanovaInstancesAPI
   window: CassanovaWindowAPI
@@ -57,4 +66,5 @@ export interface CassanovaAPI {
   vault: CassanovaVaultAPI
   auth: CassanovaAuthAPI
   certs: CassanovaCertsAPI
+  updater: CassanovaUpdaterAPI
 }
