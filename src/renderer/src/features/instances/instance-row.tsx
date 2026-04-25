@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/context-menu'
 import { StatusDot } from '@/components/status-dot'
 import { cn } from '@/lib/utils'
+import { cassanova } from '@/lib/ipc'
 import { useInstanceActions } from './use-instance-actions'
 import { useInstanceStore } from './instance-store'
 
@@ -84,6 +85,16 @@ export function InstanceRow({ instance, collapsed = false }: Props) {
       </ContextMenuTrigger>
 
       <ContextMenuContent className="border-cass-border bg-cass-surface">
+        <ContextMenuItem
+          onSelect={() => {
+            cassanova()
+              .instances.openWindow(instance.id)
+              .catch(() => {})
+          }}
+        >
+          Open in new window
+        </ContextMenuItem>
+        <ContextMenuSeparator className="bg-cass-border" />
         <ContextMenuItem onSelect={() => openEdit(instance)}>Edit…</ContextMenuItem>
         <ContextMenuItem onSelect={() => openDuplicate(instance.id)}>
           Duplicate

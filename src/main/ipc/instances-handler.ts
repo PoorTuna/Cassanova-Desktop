@@ -3,6 +3,7 @@ import { IpcChannels } from '@shared/ipc-contract'
 import type { Instance, InstanceId } from '@shared/models'
 import { instancesStore } from '../storage/instances-store'
 import { vault } from '../storage/vault'
+import { createDetachedInstanceWindow } from '../window'
 
 function broadcastChanged(): void {
   const instances = instancesStore.list()
@@ -27,5 +28,11 @@ export function registerInstancesHandlers(): void {
     // Drop any keychain entry for this instance so deletes don't leave orphans.
     await vault.delete(id).catch(() => {})
     broadcastChanged()
+  })
+
+  ipcMain.handle(IpcChannels.instancesOpenWindow, (_event, id: InstanceId) => {
+    const exists = instancesStore.list().some((i) => i.id === id)
+    if (!exists) return
+    createDetachedInstanceWindow(id)
   })
 }

@@ -13,6 +13,7 @@ export interface CassanovaInstancesAPI {
   list: () => Promise<Instance[]>
   upsert: (instance: Instance) => Promise<Instance>
   delete: (id: InstanceId) => Promise<void>
+  openWindow: (id: InstanceId) => Promise<void>
   onChanged: (callback: (instances: Instance[]) => void) => () => void
 }
 

@@ -7,6 +7,7 @@ export const IpcChannels = {
   instancesUpsert: 'instances:upsert',
   instancesDelete: 'instances:delete',
   instancesChanged: 'instances:changed',
+  instancesOpenWindow: 'instances:openWindow',
 
   // Window management
   windowMinimize: 'window:minimize',

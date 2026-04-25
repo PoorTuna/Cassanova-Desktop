@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ArrowUpRight, Bug, Copy, Pencil, RefreshCw } from 'lucide-react'
+import { ArrowUpRight, Bug, Copy, ExternalLink, Pencil, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useInstanceStore } from '@/features/instances/instance-store'
@@ -109,6 +109,19 @@ export function InstanceDetail() {
             title="Open in browser"
           >
             <ArrowUpRight className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7"
+            onClick={() => {
+              cassanova()
+                .instances.openWindow(instance.id)
+                .catch(() => {})
+            }}
+            title="Open in new window"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
           </Button>
           <Button
             size="icon"

@@ -8,6 +8,8 @@ export const instancesApi = {
     ipcRenderer.invoke(IpcChannels.instancesUpsert, instance),
   delete: (id: InstanceId): Promise<void> =>
     ipcRenderer.invoke(IpcChannels.instancesDelete, id),
+  openWindow: (id: InstanceId): Promise<void> =>
+    ipcRenderer.invoke(IpcChannels.instancesOpenWindow, id),
   onChanged: (callback: (instances: Instance[]) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, instances: Instance[]) =>
       callback(instances)
