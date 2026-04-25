@@ -1,5 +1,12 @@
 import type { Instance, InstanceId } from './models'
-import type { LoginResult, MenuAction, VaultRecord } from './ipc-contract'
+import type {
+  CertMismatchPayload,
+  CertPromptPayload,
+  CertPromptResponse,
+  LoginResult,
+  MenuAction,
+  VaultRecord,
+} from './ipc-contract'
 
 export interface CassanovaInstancesAPI {
   list: () => Promise<Instance[]>
@@ -36,10 +43,18 @@ export interface CassanovaAuthAPI {
   login: (id: InstanceId) => Promise<LoginResult>
 }
 
+export interface CassanovaCertsAPI {
+  respond: (response: CertPromptResponse) => Promise<void>
+  revoke: (id: InstanceId) => Promise<void>
+  onPrompt: (callback: (payload: CertPromptPayload) => void) => () => void
+  onMismatch: (callback: (payload: CertMismatchPayload) => void) => () => void
+}
+
 export interface CassanovaAPI {
   instances: CassanovaInstancesAPI
   window: CassanovaWindowAPI
   app: CassanovaAppAPI
   vault: CassanovaVaultAPI
   auth: CassanovaAuthAPI
+  certs: CassanovaCertsAPI
 }

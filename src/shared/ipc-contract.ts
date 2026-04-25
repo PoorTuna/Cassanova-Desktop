@@ -36,9 +36,12 @@ export const IpcChannels = {
   // Auth — main performs login against Cassanova /login, writes cookie into partition session
   authLogin: 'auth:login',
 
-  // Certs (Phase 3)
-  certsTrust: 'certs:trust',
-  certsList: 'certs:list',
+  // Certs — TLS trust on first use. Self-signed deployments are pinned to an
+  // instance by SHA-256 fingerprint; mismatches on later connects hard-block.
+  certsPrompt: 'certs:prompt',
+  certsPromptResponse: 'certs:promptResponse',
+  certsMismatch: 'certs:mismatch',
+  certsRevoke: 'certs:revoke',
 } as const
 
 export type MenuAction = 'newInstance' | 'openSettings' | 'reload' | 'toggleSidebar'
@@ -51,3 +54,29 @@ export interface VaultRecord {
 export type LoginResult =
   | { ok: true }
   | { ok: false; status: number; message: string }
+
+export interface CertPromptPayload {
+  promptId: string
+  instanceId: string
+  instanceName: string
+  url: string
+  errorCode: string
+  fingerprint: string
+  subjectCommonName: string
+  issuerCommonName: string
+  validStart: number
+  validExpiry: number
+}
+
+export interface CertPromptResponse {
+  promptId: string
+  trust: boolean
+}
+
+export interface CertMismatchPayload {
+  instanceId: string
+  instanceName: string
+  url: string
+  pinnedFingerprint: string
+  seenFingerprint: string
+}

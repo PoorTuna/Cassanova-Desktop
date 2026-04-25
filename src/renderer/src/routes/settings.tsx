@@ -1,4 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { ShieldCheck, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
@@ -9,11 +12,14 @@ import {
 } from '@/components/ui/tooltip'
 import { cassanova } from '@/lib/ipc'
 import { useUiStore } from '@/app/ui-store'
+import { useInstanceStore } from '@/features/instances/instance-store'
 
 export function Settings() {
   const [version, setVersion] = useState<string>('—')
   const developerMode = useUiStore((s) => s.developerMode)
   const setDeveloperMode = useUiStore((s) => s.setDeveloperMode)
+  const instances = useInstanceStore((s) => s.instances)
+  const pinned = instances.filter((i) => i.pinnedCertFingerprint)
 
   useEffect(() => {
     cassanova()
@@ -21,6 +27,15 @@ export function Settings() {
       .then(setVersion)
       .catch(() => setVersion('unknown'))
   }, [])
+
+  const revoke = async (id: string, name: string) => {
+    try {
+      await cassanova().certs.revoke(id)
+      toast.success(`Revoked trust for ${name}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to revoke')
+    }
+  }
 
   return (
     <div className="h-full overflow-y-auto">
@@ -58,6 +73,50 @@ export function Settings() {
 
         <Separator className="my-6 bg-cass-border" />
 
+        <Section title="Trusted certificates">
+          {pinned.length === 0 ? (
+            <p className="text-xs text-cass-text-muted">
+              No certificates pinned. Self-signed instances ask for trust on
+              first connect.
+            </p>
+          ) : (
+            <ul className="grid gap-2">
+              {pinned.map((instance) => (
+                <li
+                  key={instance.id}
+                  className="flex items-center justify-between gap-3 rounded-md border border-cass-border bg-cass-app/40 px-3 py-2"
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 shrink-0 text-cass-success" />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">
+                        {instance.name}
+                      </div>
+                      <div
+                        className="truncate font-mono text-[11px] text-cass-text-muted"
+                        title={instance.pinnedCertFingerprint}
+                      >
+                        {shortFingerprint(instance.pinnedCertFingerprint!)}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1.5 text-cass-danger hover:bg-cass-danger/10 hover:text-cass-danger"
+                    onClick={() => revoke(instance.id, instance.name)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Revoke
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+
+        <Separator className="my-6 bg-cass-border" />
+
         <Section title="About">
           <Row label="Version" value={version} />
           <Row label="Repository" value="PoorTuna/Cassanova-Desktop" />
@@ -65,6 +124,11 @@ export function Settings() {
       </div>
     </div>
   )
+}
+
+function shortFingerprint(fp: string): string {
+  if (fp.length <= 24) return fp
+  return `${fp.slice(0, 14)}…${fp.slice(-8)}`
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {

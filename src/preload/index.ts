@@ -4,6 +4,7 @@ import { windowApi } from './api/window'
 import { appApi } from './api/app'
 import { vaultApi } from './api/vault'
 import { authApi } from './api/auth'
+import { certsApi } from './api/certs'
 import type { CassanovaAPI } from './types'
 
 const api: CassanovaAPI = {
@@ -12,6 +13,7 @@ const api: CassanovaAPI = {
   app: appApi,
   vault: vaultApi,
   auth: authApi,
+  certs: certsApi,
 }
 
 try {
