@@ -83,10 +83,13 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       const el = webviewRef.current
       if (!el) return
 
-      const onStart = () => setState({ kind: 'loading' })
-      const onStop = () =>
+      const markReady = () =>
         setState((prev) => (prev.kind === 'error' ? prev : { kind: 'ready' }))
+      const onStart = () => setState({ kind: 'loading' })
+      const onStop = markReady
+      const onFinish = markReady
       const onDomReady = () => {
+        markReady()
         // Windows forced-colors mode (high-contrast / nativeTheme=dark interaction)
         // can override inline background colors on embedded pages. Opt the webview
         // out so inline styles like <span style="background:#XXX"> render as authored.
@@ -110,12 +113,25 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
 
       el.addEventListener('did-start-loading', onStart)
       el.addEventListener('did-stop-loading', onStop)
+      el.addEventListener('did-finish-load', onFinish)
       el.addEventListener('did-fail-load', onFail)
       el.addEventListener('ipc-message', onIpc)
       el.addEventListener('dom-ready', onDomReady)
+
+      // Reconcile against current webview state in case loading already finished
+      // before the listeners attached (effects run after render, but the webview
+      // tag may have already fired did-stop-loading by then).
+      try {
+        if (!el.isLoading()) markReady()
+      } catch {
+        // isLoading() throws before the guest is attached — listeners will catch
+        // the next event.
+      }
+
       return () => {
         el.removeEventListener('did-start-loading', onStart)
         el.removeEventListener('did-stop-loading', onStop)
+        el.removeEventListener('did-finish-load', onFinish)
         el.removeEventListener('did-fail-load', onFail)
         el.removeEventListener('ipc-message', onIpc)
         el.removeEventListener('dom-ready', onDomReady)

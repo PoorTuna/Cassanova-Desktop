@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Download, RefreshCcw, RotateCw } from 'lucide-react'
+import { Download, RotateCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { cassanova } from '@/lib/ipc'
@@ -16,17 +16,6 @@ export function UpdatesSection() {
       .catch(() => {})
     return cassanova().updater.onStatus(setStatus)
   }, [])
-
-  const onCheck = async () => {
-    setBusy(true)
-    try {
-      await cassanova().updater.check()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Update check failed')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   const onDownload = async () => {
     setBusy(true)
@@ -54,7 +43,6 @@ export function UpdatesSection() {
         <PrimaryAction
           status={status}
           busy={busy}
-          onCheck={onCheck}
           onDownload={onDownload}
           onInstall={onInstall}
         />
@@ -86,13 +74,11 @@ function StatusLine({ status }: { status: UpdaterStatus }) {
 function PrimaryAction({
   status,
   busy,
-  onCheck,
   onDownload,
   onInstall,
 }: {
   status: UpdaterStatus
   busy: boolean
-  onCheck: () => void
   onDownload: () => void
   onInstall: () => void
 }) {
@@ -112,18 +98,7 @@ function PrimaryAction({
       </Button>
     )
   }
-  return (
-    <Button
-      size="sm"
-      variant="outline"
-      onClick={onCheck}
-      disabled={busy || status.phase === 'checking' || status.phase === 'downloading'}
-      className="gap-1.5"
-    >
-      <RefreshCcw className="h-3.5 w-3.5" />
-      Check for updates
-    </Button>
-  )
+  return null
 }
 
 function ProgressBar({ percent }: { percent: number }) {
