@@ -55,7 +55,6 @@ export function buildAppMenu(mainWindow: BrowserWindow): Menu {
     submenu: [
       {
         label: 'Reload',
-        accelerator: shortcutMap.reload.accelerator,
         click: send(IpcChannels.menuAction),
       },
       { type: 'separator' },

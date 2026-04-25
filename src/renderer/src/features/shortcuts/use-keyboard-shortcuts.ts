@@ -27,9 +27,29 @@ export function useKeyboardShortcuts(): void {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      const devMode = useUiStore.getState().developerMode
+
+      if (event.key === 'F12') {
+        if (!devMode) return
+        const id = currentInstanceIdFromPath(pathname)
+        if (!id) return
+        event.preventDefault()
+        webviewRegistry.get(id)?.openDevTools()
+        return
+      }
+
       if (!(event.ctrlKey || event.metaKey)) return
       const key = event.key.toLowerCase()
       const typing = isTypingInField(event.target)
+
+      if (event.shiftKey && key === 'i') {
+        if (!devMode) return
+        const id = currentInstanceIdFromPath(pathname)
+        if (!id) return
+        event.preventDefault()
+        webviewRegistry.get(id)?.openDevTools()
+        return
+      }
 
       if (key === shortcutMap.commandPalette.key) {
         event.preventDefault()

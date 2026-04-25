@@ -1,15 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { cassanova } from '@/lib/ipc'
+import { useUiStore } from '@/app/ui-store'
 
 export function Settings() {
   const [version, setVersion] = useState<string>('—')
+  const developerMode = useUiStore((s) => s.developerMode)
+  const setDeveloperMode = useUiStore((s) => s.setDeveloperMode)
 
   useEffect(() => {
     cassanova()
@@ -21,29 +25,34 @@ export function Settings() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-2xl px-8 py-10">
-        <h1 className="mb-1 font-display text-2xl font-semibold tracking-tight">
+        <h1 className="mb-8 font-display text-2xl font-semibold tracking-tight">
           Settings
         </h1>
-        <p className="mb-8 text-sm text-cass-text-secondary">
-          Configure how Cassanova Desktop looks and behaves.
-        </p>
 
         <Section title="Appearance">
           <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-sm">Theme</Label>
-              <p className="mt-1 text-xs text-cass-text-muted">
-                Light theme coming in a later release.
-              </p>
-            </div>
+            <Label className="text-sm">Theme</Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="cursor-not-allowed rounded-md border border-cass-border bg-cass-surface px-3 py-1.5 text-xs text-cass-text-muted">
-                  Dark (locked)
+                  Dark
                 </div>
               </TooltipTrigger>
-              <TooltipContent>Light theme coming in a later release.</TooltipContent>
+              <TooltipContent>Only dark theme is available.</TooltipContent>
             </Tooltip>
+          </div>
+        </Section>
+
+        <Separator className="my-6 bg-cass-border" />
+
+        <Section title="Developer">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm">Developer mode</Label>
+            <Switch
+              checked={developerMode}
+              onCheckedChange={setDeveloperMode}
+              aria-label="Developer mode"
+            />
           </div>
         </Section>
 
@@ -58,7 +67,7 @@ export function Settings() {
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="rounded-lg border border-cass-border bg-cass-surface p-5">
       <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-cass-text-muted">

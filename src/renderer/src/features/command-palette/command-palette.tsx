@@ -20,6 +20,7 @@ import {
 import { useInstanceStore } from '@/features/instances/instance-store'
 import { webviewRegistry } from '@/features/instances/webview-registry'
 import { useUiStore } from '@/app/ui-store'
+import { usePlatform } from '@/hooks/use-platform'
 
 const INSTANCE_ROUTE_PREFIX = '/instances/'
 
@@ -38,6 +39,8 @@ export function CommandPalette() {
   const instances = useInstanceStore((s) => s.instances)
   const navigate = useNavigate()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const platform = usePlatform()
+  const mod = platform === 'darwin' ? '⌘' : 'Ctrl+'
 
   const run = (fn: () => void) => {
     setPaletteOpen(false)
@@ -58,7 +61,7 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setPaletteOpen}>
-      <CommandInput placeholder="Search instances or run a command..." />
+      <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results.</CommandEmpty>
         {instances.length > 0 && (
@@ -88,15 +91,15 @@ export function CommandPalette() {
           >
             <Plus />
             <span>Add instance</span>
-            <CommandShortcut>⌘N</CommandShortcut>
+            <CommandShortcut>{`${mod}N`}</CommandShortcut>
           </CommandItem>
           <CommandItem
             value="open settings preferences"
             onSelect={() => goto('/settings')}
           >
             <SettingsIcon />
-            <span>Open settings</span>
-            <CommandShortcut>⌘,</CommandShortcut>
+            <span>Settings</span>
+            <CommandShortcut>{`${mod},`}</CommandShortcut>
           </CommandItem>
           <CommandItem
             value="toggle sidebar collapse"
@@ -104,7 +107,7 @@ export function CommandPalette() {
           >
             <PanelLeft />
             <span>Toggle sidebar</span>
-            <CommandShortcut>⌘B</CommandShortcut>
+            <CommandShortcut>{`${mod}B`}</CommandShortcut>
           </CommandItem>
           <CommandItem
             value="reload current instance refresh"
@@ -112,12 +115,12 @@ export function CommandPalette() {
             disabled={!currentInstanceIdFromPath(pathname)}
           >
             <RefreshCw />
-            <span>Reload current instance</span>
-            <CommandShortcut>⌘R</CommandShortcut>
+            <span>Reload instance</span>
+            <CommandShortcut>{`${mod}R`}</CommandShortcut>
           </CommandItem>
           <CommandItem value="go home welcome" onSelect={() => goto('/')}>
             <Home />
-            <span>Go home</span>
+            <span>Home</span>
           </CommandItem>
         </CommandGroup>
       </CommandList>

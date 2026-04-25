@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ArrowUpRight, Copy, Pencil, RefreshCw } from 'lucide-react'
+import { ArrowUpRight, Bug, Copy, Pencil, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useInstanceStore } from '@/features/instances/instance-store'
 import {
   InstanceWebview,
@@ -22,6 +21,7 @@ export function InstanceDetail() {
   const openEdit = useInstanceStore((s) => s.openEdit)
   const togglePalette = useUiStore((s) => s.togglePalette)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
+  const developerMode = useUiStore((s) => s.developerMode)
   const navigate = useNavigate()
   const webviewRef = useRef<InstanceWebviewHandle>(null)
 
@@ -30,6 +30,7 @@ export function InstanceDetail() {
     if (!instanceId) return
     const handle: InstanceWebviewHandle = {
       reload: () => webviewRef.current?.reload(),
+      openDevTools: () => webviewRef.current?.openDevTools(),
     }
     return webviewRegistry.register(instanceId, handle)
   }, [instanceId])
@@ -38,6 +39,7 @@ export function InstanceDetail() {
     if (key === 'k') togglePalette()
     else if (key === 'b') toggleSidebar()
     else if (key === 'r') webviewRef.current?.reload()
+    else if (key === 'i' && developerMode) webviewRef.current?.openDevTools()
   }
 
   if (!hydrated) {
@@ -48,11 +50,8 @@ export function InstanceDetail() {
     return (
       <div className="flex h-full items-center justify-center p-8">
         <div className="text-center">
-          <p className="mb-2 font-display text-lg font-medium">
+          <p className="mb-4 font-display text-lg font-medium">
             Instance not found
-          </p>
-          <p className="mb-4 text-sm text-cass-text-muted">
-            It may have been removed in another window.
           </p>
           <Button onClick={() => navigate({ to: '/' }).catch(() => {})}>
             Go home
@@ -92,13 +91,6 @@ export function InstanceDetail() {
           <span className="truncate">{instance.url}</span>
           <Copy className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
         </button>
-        <Badge
-          variant="secondary"
-          className="ml-1 gap-1.5 border-cass-border bg-cass-app text-[10px] font-medium text-cass-text-muted"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-cass-text-subtle" />
-          Not connected
-        </Badge>
         <div className="ml-auto flex items-center gap-1">
           <Button
             size="icon"
@@ -127,6 +119,17 @@ export function InstanceDetail() {
           >
             <Pencil className="h-3.5 w-3.5" />
           </Button>
+          {developerMode && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7"
+              onClick={() => webviewRef.current?.openDevTools()}
+              title="Inspect webview"
+            >
+              <Bug className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </header>
       <div className="flex-1 overflow-hidden">

@@ -58,10 +58,7 @@ export function Sidebar() {
 function EmptyState() {
   return (
     <div className="px-3 py-8 text-center text-xs text-cass-text-muted">
-      No instances yet.
-      <div className="mt-1 text-cass-text-subtle">
-        Click &ldquo;Add instance&rdquo; below to get started.
-      </div>
+      No instances.
     </div>
   )
 }
@@ -69,7 +66,7 @@ function EmptyState() {
 function NoMatchState({ query }: { query: string }) {
   return (
     <div className="px-3 py-8 text-center text-xs text-cass-text-muted">
-      No instances match &ldquo;{query}&rdquo;.
+      No match for &ldquo;{query}&rdquo;.
     </div>
   )
 }

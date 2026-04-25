@@ -33,10 +33,10 @@ export function DeleteConfirmDialog() {
     <AlertDialog open={open} onOpenChange={(next) => !next && cancelDelete()}>
       <AlertDialogContent className="border-cass-border bg-cass-surface text-cass-text-primary">
         <AlertDialogHeader>
-          <AlertDialogTitle className="font-display">Delete instance?</AlertDialogTitle>
+          <AlertDialogTitle className="font-display">Delete instance</AlertDialogTitle>
           <AlertDialogDescription className="text-cass-text-secondary">
             {pending
-              ? `"${pending.name}" will be removed from this workspace. Its session data will remain on disk and can be recovered by re-adding the instance.`
+              ? `Remove "${pending.name}". Session data is preserved on disk.`
               : null}
           </AlertDialogDescription>
         </AlertDialogHeader>

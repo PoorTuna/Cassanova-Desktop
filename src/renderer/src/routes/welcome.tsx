@@ -3,9 +3,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Logo } from '@/components/logo'
 import { useInstanceStore } from '@/features/instances/instance-store'
+import { usePlatform } from '@/hooks/use-platform'
 
 export function Welcome() {
   const openCreate = useInstanceStore((s) => s.openCreate)
+  const platform = usePlatform()
+  const shortcut = platform === 'darwin' ? '⌘N' : 'Ctrl+N'
 
   return (
     <div className="flex h-full items-center justify-center p-8">
@@ -14,17 +17,16 @@ export function Welcome() {
           <Logo className="h-12 w-12" />
         </div>
         <h1 className="mb-2 font-display text-2xl font-semibold tracking-tight">
-          Welcome to Cassanova Desktop
+          Cassanova Desktop
         </h1>
         <p className="mb-8 text-sm text-cass-text-secondary">
-          Manage multiple Cassanova instances from a single workspace. Each
-          instance runs in an isolated session with its own credentials.
+          No instances configured.
         </p>
         <Button size="lg" className="gap-2" onClick={openCreate}>
           <Plus className="h-4 w-4" />
-          Add your first instance
+          Add instance
           <Badge variant="secondary" className="ml-2 font-mono text-[10px]">
-            ⌘N
+            {shortcut}
           </Badge>
         </Button>
       </div>

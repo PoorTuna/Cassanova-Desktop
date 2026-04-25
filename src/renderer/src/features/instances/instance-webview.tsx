@@ -18,6 +18,7 @@ import { partitionForInstance } from './partition'
 
 export interface InstanceWebviewHandle {
   reload: () => void
+  openDevTools: () => void
 }
 
 interface Props {
@@ -58,6 +59,14 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       const onStart = () => setState({ kind: 'loading' })
       const onStop = () =>
         setState((prev) => (prev.kind === 'error' ? prev : { kind: 'ready' }))
+      const onDomReady = () => {
+        // Windows forced-colors mode (high-contrast / nativeTheme=dark interaction)
+        // can override inline background colors on embedded pages. Opt the webview
+        // out so inline styles like <span style="background:#XXX"> render as authored.
+        el.insertCSS(
+          ':root { color-scheme: dark; forced-color-adjust: none; } *, *::before, *::after { forced-color-adjust: none !important; }',
+        ).catch(() => {})
+      }
       const onFail = (event: Electron.DidFailLoadEvent) => {
         if (event.errorCode === -3) return
         if (event.isMainFrame === false) return
@@ -76,11 +85,13 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       el.addEventListener('did-stop-loading', onStop)
       el.addEventListener('did-fail-load', onFail)
       el.addEventListener('ipc-message', onIpc)
+      el.addEventListener('dom-ready', onDomReady)
       return () => {
         el.removeEventListener('did-start-loading', onStart)
         el.removeEventListener('did-stop-loading', onStop)
         el.removeEventListener('did-fail-load', onFail)
         el.removeEventListener('ipc-message', onIpc)
+        el.removeEventListener('dom-ready', onDomReady)
       }
     }, [preloadPath, onShortcut])
 
@@ -92,6 +103,12 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
           if (!el) return
           setState({ kind: 'loading' })
           el.reload()
+        },
+        openDevTools: () => {
+          const el = webviewRef.current
+          if (!el) return
+          if (el.isDevToolsOpened()) el.closeDevTools()
+          else el.openDevTools()
         },
       }),
       [],
@@ -164,7 +181,7 @@ function ErrorState({
     <div className="flex h-full w-full items-center justify-center p-8">
       <div className="max-w-md text-center">
         <p className="mb-1 font-display text-lg font-medium">
-          Couldn&rsquo;t reach this instance
+          Connection failed
         </p>
         <p className="mb-1 break-all font-mono text-xs text-cass-text-muted">
           {url}
@@ -172,7 +189,7 @@ function ErrorState({
         <p className="mb-6 text-xs text-cass-text-subtle">{description}</p>
         <Button onClick={onRetry} className="gap-2">
           <RefreshCw className="h-3.5 w-3.5" />
-          Try again
+          Retry
         </Button>
       </div>
     </div>

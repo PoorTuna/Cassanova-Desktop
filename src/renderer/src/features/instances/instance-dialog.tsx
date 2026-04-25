@@ -101,7 +101,7 @@ export function InstanceDialog() {
             {isEdit ? 'Edit instance' : 'Add instance'}
           </DialogTitle>
           <DialogDescription className="text-cass-text-secondary">
-            Each instance keeps its own session and credentials.
+            Isolated session per instance.
           </DialogDescription>
         </DialogHeader>
 

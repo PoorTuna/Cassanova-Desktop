@@ -21,6 +21,7 @@ export function createMainWindow(): BrowserWindow {
     minHeight: 600,
     show: false,
     frame: false,
+    icon: join(__dirname, '../../resources/icon.png'),
     backgroundColor: '#08080a',
     titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
     ...(isMac

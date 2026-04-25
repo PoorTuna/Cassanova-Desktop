@@ -38,9 +38,9 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex h-screen items-center justify-center bg-background p-8 text-foreground">
           <div className="max-w-md text-center">
             <h1 className="mb-2 font-display text-2xl font-semibold">
-              Something broke.
+              Application error
             </h1>
-            <p className="mb-6 text-sm text-cass-text-secondary">
+            <p className="mb-6 font-mono text-xs text-cass-text-secondary">
               {this.state.error.message}
             </p>
             <div className="flex items-center justify-center gap-2">
