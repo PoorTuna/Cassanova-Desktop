@@ -2,11 +2,15 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { IpcChannels } from '@shared/ipc-contract'
 import type { UpdaterStatus } from '@shared/ipc-contract'
+import { getLogger } from './_logger'
+
+const log = getLogger('updater')
 
 let lastStatus: UpdaterStatus = { phase: 'idle' }
 
 function emit(status: UpdaterStatus): void {
   lastStatus = status
+  log.debug('status', { status })
   for (const win of BrowserWindow.getAllWindows()) {
     win.webContents.send(IpcChannels.updaterStatus, status)
   }
@@ -23,6 +27,7 @@ export function registerUpdaterHandlers(): void {
     try {
       await autoUpdater.checkForUpdates()
     } catch (err) {
+      log.error('checkForUpdates failed', undefined, err)
       emit({
         phase: 'error',
         message: err instanceof Error ? err.message : 'Update check failed',
@@ -35,6 +40,7 @@ export function registerUpdaterHandlers(): void {
     try {
       await autoUpdater.downloadUpdate()
     } catch (err) {
+      log.error('downloadUpdate failed', undefined, err)
       emit({
         phase: 'error',
         message: err instanceof Error ? err.message : 'Update download failed',
@@ -82,6 +88,7 @@ export function startUpdater(): void {
     emit({ phase: 'downloaded', version: info.version }),
   )
 
+  log.info('starting', { current: app.getVersion() })
   autoUpdater.checkForUpdates().catch(() => {
     // Initial check error is surfaced via the 'error' event above.
   })

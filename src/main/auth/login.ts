@@ -2,7 +2,9 @@ import { session as electronSession } from 'electron'
 import type { Instance } from '@shared/models'
 import type { LoginResult, VaultRecord } from '@shared/ipc-contract'
 import { partitionForInstance } from '@shared/partition'
+import { getLogger } from '../_logger'
 
+const log = getLogger('auth')
 const LOGIN_PATH = '/login'
 
 /**
@@ -27,7 +29,10 @@ export async function performLogin(
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
     })
-    if (res.ok) return { ok: true }
+    if (res.ok) {
+      log.info('login ok', { id: instance.id })
+      return { ok: true }
+    }
 
     let message = `HTTP ${res.status}`
     try {
@@ -36,8 +41,10 @@ export async function performLogin(
     } catch {
       // body wasn't JSON; keep status-based message
     }
+    log.warn('login failed', { id: instance.id, status: res.status, message })
     return { ok: false, status: res.status, message }
   } catch (err) {
+    log.error('login network error', { id: instance.id }, err)
     return {
       ok: false,
       status: 0,

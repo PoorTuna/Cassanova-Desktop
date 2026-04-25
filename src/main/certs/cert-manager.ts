@@ -5,6 +5,9 @@ import { IpcChannels } from '@shared/ipc-contract'
 import type { CertPromptPayload, CertPromptResponse } from '@shared/ipc-contract'
 import type { Instance } from '@shared/models'
 import { instancesStore } from '../storage/instances-store'
+import { getLogger } from '../_logger'
+
+const log = getLogger('certs')
 
 interface PendingPrompt {
   promptId: string
@@ -117,13 +120,21 @@ export function registerCertHandlers(): void {
         return
       }
       if (pinned && pinned !== fingerprint) {
+        log.warn('pin mismatch', {
+          id: instance.id,
+          pinned,
+          seen: fingerprint,
+          errorCode: error,
+        })
         broadcastMismatch(instance, fingerprint)
         callback(false)
         return
       }
+      log.info('cert prompt', { id: instance.id, fingerprint, errorCode: error })
       promptRenderer(instance, certificate, error)
         .then((trust) => {
           if (trust) {
+            log.info('cert trusted', { id: instance.id, fingerprint })
             const updated: Instance = {
               ...instance,
               pinnedCertFingerprint: fingerprint,
@@ -133,10 +144,15 @@ export function registerCertHandlers(): void {
             for (const win of BrowserWindow.getAllWindows()) {
               win.webContents.send(IpcChannels.instancesChanged, instancesStore.list())
             }
+          } else {
+            log.info('cert rejected', { id: instance.id, fingerprint })
           }
           callback(trust)
         })
-        .catch(() => callback(false))
+        .catch((err) => {
+          log.error('cert prompt failed', { id: instance.id }, err)
+          callback(false)
+        })
     },
   )
 
@@ -153,6 +169,7 @@ export function registerCertHandlers(): void {
   ipcMain.handle(IpcChannels.certsRevoke, (_event, instanceId: string) => {
     const instance = instancesStore.list().find((i) => i.id === instanceId)
     if (!instance || !instance.pinnedCertFingerprint) return
+    log.info('cert revoked', { id: instanceId })
     const updated: Instance = {
       ...instance,
       pinnedCertFingerprint: undefined,

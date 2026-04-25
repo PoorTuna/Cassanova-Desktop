@@ -3,6 +3,9 @@ import type { Instance, InstanceId, InstanceStatus } from '@shared/models'
 import { IpcChannels } from '@shared/ipc-contract'
 import { instancesStore } from '../storage/instances-store'
 import { probeInstance } from './probe'
+import { getLogger } from '../_logger'
+
+const log = getLogger('health.poller')
 
 const POLL_INTERVAL_MS = 30_000
 const STARTUP_DELAY_MS = 2_000
@@ -36,7 +39,11 @@ async function probeOnce(id: InstanceId): Promise<void> {
   // Persist + broadcast. instancesStore.upsert handles file write atomically.
   instancesStore.upsert(next)
   const entry = tracked.get(id)
+  const prev = entry?.lastStatus
   if (entry) entry.lastStatus = status
+  if (prev !== status) {
+    log.info('status change', { id, from: prev ?? null, to: status })
+  }
   broadcastInstances()
 }
 
@@ -52,8 +59,8 @@ function startTracking(id: InstanceId, delayMs: number): void {
       return
     }
     entry.inflight = probeOnce(id)
-      .catch(() => {
-        /* swallow; probe already maps errors to status */
+      .catch((err) => {
+        log.warn('probe failed', { id }, err)
       })
       .finally(() => {
         entry.inflight = null
@@ -90,6 +97,7 @@ function syncTrackedSet(): void {
 export function startHealthPoller(): void {
   if (started) return
   started = true
+  log.info('starting', { intervalMs: POLL_INTERVAL_MS })
   syncTrackedSet()
   instancesStore.on('changed', () => syncTrackedSet())
 }
