@@ -2,6 +2,7 @@ import { ipcMain, BrowserWindow } from 'electron'
 import { IpcChannels } from '@shared/ipc-contract'
 import type { Instance, InstanceId } from '@shared/models'
 import { instancesStore } from '../storage/instances-store'
+import { vault } from '../storage/vault'
 
 function broadcastChanged(): void {
   const instances = instancesStore.list()
@@ -21,8 +22,10 @@ export function registerInstancesHandlers(): void {
     return result
   })
 
-  ipcMain.handle(IpcChannels.instancesDelete, (_event, id: InstanceId) => {
+  ipcMain.handle(IpcChannels.instancesDelete, async (_event, id: InstanceId) => {
     instancesStore.delete(id)
+    // Drop any keychain entry for this instance so deletes don't leave orphans.
+    await vault.delete(id).catch(() => {})
     broadcastChanged()
   })
 }

@@ -1,4 +1,5 @@
 import { useMatchRoute, useNavigate } from '@tanstack/react-router'
+import { Lock } from 'lucide-react'
 import type { Instance } from '@shared/models'
 import {
   ContextMenu,
@@ -10,6 +11,7 @@ import {
 import { StatusDot } from '@/components/status-dot'
 import { cn } from '@/lib/utils'
 import { useInstanceActions } from './use-instance-actions'
+import { useInstanceStore } from './instance-store'
 
 interface Props {
   instance: Instance
@@ -20,6 +22,7 @@ export function InstanceRow({ instance, collapsed = false }: Props) {
   const navigate = useNavigate()
   const matchRoute = useMatchRoute()
   const { openEdit, openDuplicate, requestDelete } = useInstanceActions()
+  const hasCreds = useInstanceStore((s) => s.vaultIds.has(instance.id))
 
   const isActive = !!matchRoute({
     to: '/instances/$instanceId',
@@ -65,6 +68,15 @@ export function InstanceRow({ instance, collapsed = false }: Props) {
                 {instance.url}
               </span>
             </span>
+          )}
+          {hasCreds && (
+            <Lock
+              aria-label="Credentials saved"
+              className={cn(
+                'h-3 w-3 shrink-0 text-cass-text-muted',
+                collapsed ? 'absolute right-1 top-1' : 'mr-1',
+              )}
+            />
           )}
         </button>
       </ContextMenuTrigger>

@@ -24,8 +24,11 @@ interface InstanceStore {
   hydrated: boolean
   dialog: DialogState
   pendingDelete: DeleteRequest | null
+  /** Set of instance ids that have credentials in the OS keychain. */
+  vaultIds: Set<InstanceId>
 
   hydrate: () => Promise<void>
+  refreshVault: () => Promise<void>
   upsert: (instance: Instance) => Promise<void>
   remove: (id: InstanceId) => Promise<void>
 
@@ -39,22 +42,37 @@ interface InstanceStore {
 }
 
 let unsubscribeChanged: (() => void) | null = null
+let unsubscribeVault: (() => void) | null = null
 
 export const useInstanceStore = create<InstanceStore>((set, get) => ({
   instances: [],
   hydrated: false,
   dialog: { mode: 'closed' },
   pendingDelete: null,
+  vaultIds: new Set(),
 
   hydrate: async () => {
     if (get().hydrated) return
-    const instances = await cassanova().instances.list()
-    set({ instances, hydrated: true })
+    const [instances, vaultIds] = await Promise.all([
+      cassanova().instances.list(),
+      cassanova().vault.listIds(),
+    ])
+    set({ instances, vaultIds: new Set(vaultIds), hydrated: true })
     if (!unsubscribeChanged) {
       unsubscribeChanged = cassanova().instances.onChanged((next) =>
         set({ instances: next }),
       )
     }
+    if (!unsubscribeVault) {
+      unsubscribeVault = cassanova().vault.onChanged(() => {
+        get().refreshVault().catch(() => {})
+      })
+    }
+  },
+
+  refreshVault: async () => {
+    const ids = await cassanova().vault.listIds()
+    set({ vaultIds: new Set(ids) })
   },
 
   upsert: async (instance) => {

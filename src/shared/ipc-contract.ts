@@ -1,5 +1,3 @@
-import type { Instance, InstanceId } from './models'
-
 /**
  * Channel names for main<->renderer IPC. Single source of truth — both sides import from here.
  */
@@ -28,10 +26,15 @@ export const IpcChannels = {
   menuOpenSettings: 'menu:openSettings',
   menuAction: 'menu:action',
 
-  // Vault (Phase 2)
-  vaultGet: 'vault:get',
+  // Vault — credentials live in OS keychain, never reach renderer in plaintext form
   vaultSet: 'vault:set',
   vaultDelete: 'vault:delete',
+  vaultHas: 'vault:has',
+  vaultListIds: 'vault:listIds',
+  vaultChanged: 'vault:changed',
+
+  // Auth — main performs login against Cassanova /login, writes cookie into partition session
+  authLogin: 'auth:login',
 
   // Certs (Phase 3)
   certsTrust: 'certs:trust',
@@ -45,16 +48,6 @@ export interface VaultRecord {
   password: string
 }
 
-export interface IpcSurface {
-  [IpcChannels.instancesList]: () => Promise<Instance[]>
-  [IpcChannels.instancesUpsert]: (instance: Instance) => Promise<Instance>
-  [IpcChannels.instancesDelete]: (id: InstanceId) => Promise<void>
-  [IpcChannels.windowMinimize]: () => void
-  [IpcChannels.windowMaximize]: () => void
-  [IpcChannels.windowClose]: () => void
-  [IpcChannels.windowIsMaximized]: () => Promise<boolean>
-  [IpcChannels.appPlatform]: () => NodeJS.Platform
-  [IpcChannels.appVersion]: () => string
-  [IpcChannels.appOpenExternal]: (url: string) => Promise<void>
-  [IpcChannels.appWebviewPreloadPath]: () => Promise<string>
-}
+export type LoginResult =
+  | { ok: true }
+  | { ok: false; status: number; message: string }

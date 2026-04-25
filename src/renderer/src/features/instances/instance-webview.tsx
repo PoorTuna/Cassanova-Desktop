@@ -35,6 +35,10 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
   function InstanceWebview({ instance, onShortcut }, ref) {
     const webviewRef = useRef<WebviewTag | null>(null)
     const [preloadPath, setPreloadPath] = useState<string | null>(null)
+    // Webview src is gated on the auth attempt completing so the user lands
+    // on the dashboard (when creds are stored) or the /login page (when not),
+    // never bouncing through /login then back to /.
+    const [authReady, setAuthReady] = useState(false)
     const [state, setState] = useState<LoadState>({ kind: 'loading' })
 
     useEffect(() => {
@@ -51,6 +55,29 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
         mounted = false
       }
     }, [])
+
+    useEffect(() => {
+      let mounted = true
+      setAuthReady(false)
+      const api = cassanova()
+      async function attempt() {
+        try {
+          const hasCreds = await api.vault.has(instance.id)
+          if (!mounted) return
+          if (hasCreds) {
+            // If login fails, fall through anyway — Cassanova will render the
+            // HTML login form and the user can recover manually.
+            await api.auth.login(instance.id).catch(() => {})
+          }
+        } finally {
+          if (mounted) setAuthReady(true)
+        }
+      }
+      attempt()
+      return () => {
+        mounted = false
+      }
+    }, [instance.id])
 
     useEffect(() => {
       const el = webviewRef.current
@@ -114,7 +141,7 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       [],
     )
 
-    if (preloadPath === null) {
+    if (preloadPath === null || !authReady) {
       return <FullSkeleton />
     }
 
