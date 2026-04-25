@@ -60,22 +60,31 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       let mounted = true
       setAuthReady(false)
       const api = cassanova()
+      // Hard cap so a hanging /login or vault probe can never trap the user
+      // in the loading skeleton — proceed with the webview after 3s no matter
+      // what. The cookie either landed by then or the user will be shown the
+      // server's /login page and can recover.
+      const cap = setTimeout(() => {
+        if (mounted) setAuthReady(true)
+      }, 3000)
       async function attempt() {
         try {
           const hasCreds = await api.vault.has(instance.id)
           if (!mounted) return
           if (hasCreds) {
-            // If login fails, fall through anyway — Cassanova will render the
-            // HTML login form and the user can recover manually.
             await api.auth.login(instance.id).catch(() => {})
           }
         } finally {
-          if (mounted) setAuthReady(true)
+          if (mounted) {
+            clearTimeout(cap)
+            setAuthReady(true)
+          }
         }
       }
       attempt()
       return () => {
         mounted = false
+        clearTimeout(cap)
       }
     }, [instance.id])
 

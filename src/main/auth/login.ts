@@ -6,6 +6,7 @@ import { getLogger } from '../_logger'
 
 const log = getLogger('auth')
 const LOGIN_PATH = '/login'
+const LOGIN_TIMEOUT_MS = 5000
 
 /**
  * POST credentials to the instance's /login endpoint using the partition session
@@ -23,11 +24,14 @@ export async function performLogin(
     password: creds.password,
   }).toString()
 
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), LOGIN_TIMEOUT_MS)
   try {
     const res = await ses.fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,
+      signal: controller.signal,
     })
     if (res.ok) {
       log.info('login ok', { id: instance.id })
@@ -50,5 +54,7 @@ export async function performLogin(
       status: 0,
       message: err instanceof Error ? err.message : 'Network error',
     }
+  } finally {
+    clearTimeout(timer)
   }
 }
