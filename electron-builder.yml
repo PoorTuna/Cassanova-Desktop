@@ -15,6 +15,7 @@ asarUnpack:
   - node_modules/keytar/**/*
 
 win:
+  icon: build/icon-square.png
   target:
     - target: nsis
       arch: [x64]
@@ -40,6 +41,7 @@ mac:
   identity: null
 
 linux:
+  icon: build/icon-square.png
   target:
     - target: AppImage
       arch: [x64]
