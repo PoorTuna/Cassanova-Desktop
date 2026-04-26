@@ -51,13 +51,11 @@ linux:
       arch: [x64]
     - target: pacman
       arch: [x64]
-    - target: snap
-      arch: [x64]
     - target: tar.xz
       arch: [x64]
   category: Development
   maintainer: PoorTuna
-  synopsis: Lens-style desktop client for managing multiple Cassanova instances
+  synopsis: Desktop client for managing multiple Cassanova instances
   description: |
     Cassanova Desktop is a multi-instance shell for Cassanova deployments.
     It manages credentials in the OS keychain, pins TLS certificates per
@@ -66,17 +64,6 @@ linux:
 rpm:
   fpm:
     - --rpm-rpmbuild-define=_build_id_links none
-
-snap:
-  confinement: strict
-  grade: stable
-  plugs:
-    - default
-    - password-manager-service
-  publish:
-    - provider: github
-      owner: PoorTuna
-      repo: Cassanova-Desktop
 
 publish:
   provider: github

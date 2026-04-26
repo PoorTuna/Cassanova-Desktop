@@ -1,7 +1,7 @@
 <h1 align="center">Cassanova Desktop</h1>
 
 <p align="center">
-  A Lens-style desktop client for <a href="https://github.com/PoorTuna/Cassanova">Cassanova</a>.
+  Desktop client for <a href="https://github.com/PoorTuna/Cassanova">Cassanova</a>.
   Manage every Cassandra cluster you own from a single window.
 </p>
 
@@ -46,7 +46,7 @@ Grab a build from the [latest release](https://github.com/PoorTuna/Cassanova-Des
 | --- | --- |
 | Windows | `Cassanova Desktop Setup x.y.z.exe` (NSIS) or the portable `.exe` |
 | macOS   | `.dmg` (Intel + Apple Silicon) |
-| Linux   | `.AppImage`, `.deb`, `.snap` |
+| Linux   | `.AppImage`, `.deb`, `.rpm`, `.pacman`, `.tar.xz` |
 
 Binaries are not code-signed yet — Windows SmartScreen and macOS Gatekeeper
 will warn on first launch.
@@ -67,7 +67,7 @@ npm run build          # compile main, preload, renderer
 npm run package        # build + host-platform installer
 npm run package:win    # nsis + portable
 npm run package:mac    # dmg + zip, x64 + arm64
-npm run package:linux  # AppImage + deb + snap
+npm run package:linux  # AppImage + deb + rpm + pacman + tar.xz
 ```
 
 ## Scripts
