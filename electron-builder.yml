@@ -74,7 +74,9 @@ snap:
     - default
     - password-manager-service
   publish:
-    provider: github
+    - provider: github
+      owner: PoorTuna
+      repo: Cassanova-Desktop
 
 publish:
   provider: github
