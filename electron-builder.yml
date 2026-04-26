@@ -71,6 +71,8 @@ snap:
   plugs:
     - default
     - password-manager-service
+  publish:
+    provider: github
 
 publish:
   provider: github
