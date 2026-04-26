@@ -11,7 +11,6 @@ import {
 import { RefreshCw } from 'lucide-react'
 import type { WebviewTag } from 'electron'
 import type { Instance } from '@shared/models'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { cassanova } from '@/lib/ipc'
 import { partitionForInstance } from './partition'
@@ -31,60 +30,70 @@ type LoadState =
   | { kind: 'ready' }
   | { kind: 'error'; description: string }
 
+// Module-level cache so the second mount onward is synchronous and the
+// webview tag always has its preload attribute on first paint.
+let cachedPreloadPath: string | null = null
+let preloadPathPromise: Promise<string> | null = null
+
+function getPreloadPath(): Promise<string> {
+  if (cachedPreloadPath !== null) return Promise.resolve(cachedPreloadPath)
+  if (!preloadPathPromise) {
+    preloadPathPromise = cassanova()
+      .app.webviewPreloadPath()
+      .then((path) => {
+        cachedPreloadPath = path
+        return path
+      })
+      .catch(() => {
+        cachedPreloadPath = ''
+        return ''
+      })
+  }
+  return preloadPathPromise
+}
+
 export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
   function InstanceWebview({ instance, onShortcut }, ref) {
     const webviewRef = useRef<WebviewTag | null>(null)
-    const [preloadPath, setPreloadPath] = useState<string | null>(null)
-    // Webview src is gated on the auth attempt completing so the user lands
-    // on the dashboard (when creds are stored) or the /login page (when not),
-    // never bouncing through /login then back to /.
-    const [authReady, setAuthReady] = useState(false)
+    const [preloadPath, setPreloadPath] = useState<string | null>(
+      cachedPreloadPath,
+    )
     const [state, setState] = useState<LoadState>({ kind: 'loading' })
 
     useEffect(() => {
+      if (cachedPreloadPath !== null) return
       let mounted = true
-      cassanova()
-        .app.webviewPreloadPath()
-        .then((path) => {
-          if (mounted) setPreloadPath(path)
-        })
-        .catch(() => {
-          if (mounted) setPreloadPath('')
-        })
+      getPreloadPath().then((path) => {
+        if (mounted) setPreloadPath(path)
+      })
       return () => {
         mounted = false
       }
     }, [])
 
+    // Fire-and-forget auth: if creds exist, post them so the cookie lands in
+    // the partition session. If the webview already navigated to /login by
+    // the time login resolves, reload so the server hands back the dashboard.
     useEffect(() => {
       let mounted = true
-      setAuthReady(false)
       const api = cassanova()
-      // Hard cap so a hanging /login or vault probe can never trap the user
-      // in the loading skeleton — proceed with the webview after 3s no matter
-      // what. The cookie either landed by then or the user will be shown the
-      // server's /login page and can recover.
-      const cap = setTimeout(() => {
-        if (mounted) setAuthReady(true)
-      }, 3000)
-      async function attempt() {
+      ;(async () => {
+        const hasCreds = await api.vault.has(instance.id).catch(() => false)
+        if (!mounted || !hasCreds) return
+        const result = await api.auth.login(instance.id).catch(() => null)
+        if (!mounted || !result?.ok) return
+        const el = webviewRef.current
+        if (!el) return
         try {
-          const hasCreds = await api.vault.has(instance.id)
-          if (!mounted) return
-          if (hasCreds) {
-            await api.auth.login(instance.id).catch(() => {})
-          }
-        } finally {
-          if (mounted) {
-            clearTimeout(cap)
-            setAuthReady(true)
-          }
+          const current = el.getURL()
+          if (current.includes('/login')) el.reload()
+        } catch {
+          // getURL throws before the guest attaches; the initial load will
+          // already pick up the freshly-set cookie.
         }
-      }
-      attempt()
+      })()
       return () => {
         mounted = false
-        clearTimeout(cap)
       }
     }, [instance.id])
 
@@ -93,7 +102,9 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       if (!el) return
 
       const markReady = () =>
-        setState((prev) => (prev.kind === 'error' || prev.kind === 'ready' ? prev : { kind: 'ready' }))
+        setState((prev) =>
+          prev.kind === 'error' || prev.kind === 'ready' ? prev : { kind: 'ready' },
+        )
       const onDomReady = () => {
         markReady()
         // Windows forced-colors mode (high-contrast / nativeTheme=dark interaction)
@@ -117,44 +128,32 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
         if (payload?.key) onShortcut?.(payload.key)
       }
 
-      // Only treat dom-ready / did-stop-loading / did-finish-load as ready
-      // signals. Don't flip back to 'loading' on intra-webview navigations —
-      // once the page is interactive the overlay must never reappear, since
-      // an absolutely-positioned overlay would block pointer events.
       el.addEventListener('did-stop-loading', markReady)
       el.addEventListener('did-finish-load', markReady)
       el.addEventListener('dom-ready', onDomReady)
       el.addEventListener('did-fail-load', onFail)
       el.addEventListener('ipc-message', onIpc)
 
-      // Hard fallback: even if every event is missed (race between mount and
-      // event dispatch), drop the overlay after 4s so the UI can never lock.
-      const fallback = setTimeout(markReady, 4000)
-
       try {
         if (!el.isLoading()) markReady()
       } catch {
-        // isLoading() throws before the guest is attached.
+        // isLoading() throws before the guest attaches.
       }
 
       return () => {
-        clearTimeout(fallback)
         el.removeEventListener('did-stop-loading', markReady)
         el.removeEventListener('did-finish-load', markReady)
         el.removeEventListener('dom-ready', onDomReady)
         el.removeEventListener('did-fail-load', onFail)
         el.removeEventListener('ipc-message', onIpc)
       }
-    }, [preloadPath, onShortcut])
+    }, [onShortcut])
 
     useImperativeHandle(
       ref,
       () => ({
         reload: () => {
-          const el = webviewRef.current
-          if (!el) return
-          setState({ kind: 'loading' })
-          el.reload()
+          webviewRef.current?.reload()
         },
         openDevTools: () => {
           const el = webviewRef.current
@@ -165,10 +164,6 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       }),
       [],
     )
-
-    if (preloadPath === null || !authReady) {
-      return <FullSkeleton />
-    }
 
     return (
       <div className="relative h-full w-full bg-cass-app">
@@ -185,7 +180,6 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
             width: '100%',
           }}
         />
-        {state.kind === 'loading' && <FullSkeleton overlay />}
         {state.kind === 'error' && (
           <ErrorState
             url={instance.url}
@@ -200,25 +194,6 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
     )
   },
 )
-
-function FullSkeleton({ overlay = false }: { overlay?: boolean }) {
-  return (
-    <div
-      className={
-        overlay
-          ? 'pointer-events-none absolute inset-0 flex items-center justify-center bg-cass-app/95'
-          : 'flex h-full w-full items-center justify-center bg-cass-app'
-      }
-    >
-      <div className="w-72 space-y-3">
-        <Skeleton className="h-6 w-2/3 bg-cass-hover" />
-        <Skeleton className="h-4 w-full bg-cass-hover" />
-        <Skeleton className="h-4 w-5/6 bg-cass-hover" />
-        <Skeleton className="h-4 w-3/4 bg-cass-hover" />
-      </div>
-    </div>
-  )
-}
 
 function ErrorState({
   url,
