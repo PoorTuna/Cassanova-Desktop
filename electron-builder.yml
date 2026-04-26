@@ -18,6 +18,11 @@ win:
   target:
     - target: nsis
       arch: [x64]
+    - target: portable
+      arch: [x64]
+
+portable:
+  artifactName: ${productName}-${version}-portable.exe
 
 nsis:
   oneClick: false
