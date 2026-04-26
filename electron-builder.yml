@@ -18,7 +18,8 @@ win:
   target:
     - target: nsis
       arch: [x64]
-  # Phase 4: Azure Trusted Signing wired here
+  # Code signing: provide WIN_CSC_LINK + WIN_CSC_KEY_PASSWORD as repo secrets
+  # to sign the NSIS installer in CI. Without them the artifact is unsigned.
 
 nsis:
   oneClick: false
@@ -33,8 +34,10 @@ mac:
     - target: zip
       arch: [x64, arm64]
   category: public.app-category.developer-tools
-  # Phase 4: Apple Developer ID + notarization wired here
   hardenedRuntime: true
+  # Notarization runs automatically when APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD +
+  # APPLE_TEAM_ID env vars are present alongside the Developer ID cert
+  # (MAC_CSC_LINK + MAC_CSC_KEY_PASSWORD).
 
 linux:
   target:
