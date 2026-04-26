@@ -57,6 +57,11 @@ export function buildAppMenu(mainWindow: BrowserWindow): Menu {
         label: 'Reload',
         click: send(IpcChannels.menuAction),
       },
+      {
+        label: 'Open in New Window',
+        accelerator: shortcutMap.detach.accelerator,
+        click: send(IpcChannels.menuDetach),
+      },
       { type: 'separator' },
       { role: 'toggleDevTools' },
       { type: 'separator' },

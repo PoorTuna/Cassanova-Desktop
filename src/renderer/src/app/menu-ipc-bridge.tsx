@@ -30,6 +30,9 @@ export function MenuIpcBridge(): null {
       } else if (action === 'reload') {
         const id = currentInstanceIdFromPath(pathname)
         if (id) webviewRegistry.get(id)?.reload()
+      } else if (action === 'detach') {
+        const id = currentInstanceIdFromPath(pathname)
+        if (id) cassanova().instances.openWindow(id).catch(() => {})
       }
     }
     return cassanova().app.onMenuAction(handle)

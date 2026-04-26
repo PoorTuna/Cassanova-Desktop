@@ -26,6 +26,7 @@ export const IpcChannels = {
   menuNewInstance: 'menu:newInstance',
   menuOpenSettings: 'menu:openSettings',
   menuAction: 'menu:action',
+  menuDetach: 'menu:detach',
 
   // Vault — credentials live in OS keychain, never reach renderer in plaintext form
   vaultSet: 'vault:set',
@@ -52,7 +53,7 @@ export const IpcChannels = {
   updaterStatus: 'updater:status',
 } as const
 
-export type MenuAction = 'newInstance' | 'openSettings' | 'reload' | 'toggleSidebar'
+export type MenuAction = 'newInstance' | 'openSettings' | 'reload' | 'toggleSidebar' | 'detach'
 
 export interface VaultRecord {
   username: string

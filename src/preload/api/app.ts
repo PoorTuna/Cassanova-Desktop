@@ -13,13 +13,16 @@ export const appApi = {
     const newInstanceHandler = () => callback('newInstance')
     const settingsHandler = () => callback('openSettings')
     const menuActionHandler = () => callback('reload')
+    const detachHandler = () => callback('detach')
     ipcRenderer.on(IpcChannels.menuNewInstance, newInstanceHandler)
     ipcRenderer.on(IpcChannels.menuOpenSettings, settingsHandler)
     ipcRenderer.on(IpcChannels.menuAction, menuActionHandler)
+    ipcRenderer.on(IpcChannels.menuDetach, detachHandler)
     return () => {
       ipcRenderer.removeListener(IpcChannels.menuNewInstance, newInstanceHandler)
       ipcRenderer.removeListener(IpcChannels.menuOpenSettings, settingsHandler)
       ipcRenderer.removeListener(IpcChannels.menuAction, menuActionHandler)
+      ipcRenderer.removeListener(IpcChannels.menuDetach, detachHandler)
     }
   },
 }

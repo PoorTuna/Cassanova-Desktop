@@ -18,6 +18,12 @@ export const shortcuts: ShortcutDef[] = [
   { id: 'toggleSidebar', key: 'b', label: `${mod}B`, accelerator: `${modKey}+B` },
   { id: 'reload', key: 'r', label: `${mod}R`, accelerator: `${modKey}+R` },
   { id: 'closeTab', key: 'w', label: `${mod}W`, accelerator: `${modKey}+W` },
+  {
+    id: 'detach',
+    key: 'N',
+    label: `${mod}Shift+N`,
+    accelerator: `${modKey}+Shift+N`,
+  },
 ]
 
 export const shortcutMap = Object.fromEntries(
