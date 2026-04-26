@@ -54,6 +54,7 @@ linux:
     - target: tar.xz
       arch: [x64]
   category: Development
+  maintainer: PoorTuna
   synopsis: Lens-style desktop client for managing multiple Cassanova instances
   description: |
     Cassanova Desktop is a multi-instance shell for Cassanova deployments.
