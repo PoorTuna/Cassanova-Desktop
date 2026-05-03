@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron'
 import { IpcChannels } from '@shared/ipc-contract'
+import type { ChromeColorsPayload } from '@shared/ipc-contract'
 
 export const windowApi = {
   minimize: () => ipcRenderer.send(IpcChannels.windowMinimize),
@@ -14,4 +15,6 @@ export const windowApi = {
       ipcRenderer.removeListener(IpcChannels.windowMaximizeChanged, handler)
     }
   },
+  setChromeColors: (payload: ChromeColorsPayload) =>
+    ipcRenderer.send(IpcChannels.windowSetChromeColors, payload),
 }

@@ -15,12 +15,16 @@ export const IpcChannels = {
   windowClose: 'window:close',
   windowIsMaximized: 'window:isMaximized',
   windowMaximizeChanged: 'window:maximizeChanged',
+  windowSetChromeColors: 'window:setChromeColors',
 
   // App info
   appPlatform: 'app:platform',
   appVersion: 'app:version',
   appOpenExternal: 'app:openExternal',
   appWebviewPreloadPath: 'app:webviewPreloadPath',
+
+  // Webview → host (sendToHost channels — not main/renderer IPC)
+  webviewThemeChanged: 'webview:themeChanged',
 
   // Menu actions (main → renderer)
   menuNewInstance: 'menu:newInstance',
@@ -54,6 +58,15 @@ export const IpcChannels = {
 } as const
 
 export type MenuAction = 'newInstance' | 'openSettings' | 'reload' | 'toggleSidebar' | 'detach'
+
+export interface ChromeColorsPayload {
+  /** Hex color used for BrowserWindow.backgroundColor (paint-flash + native chrome). */
+  background: string
+  /** Windows titleBarOverlay button strip background. Ignored on macOS. */
+  titleBarColor: string
+  /** Windows titleBarOverlay icon (min/max/close) color. Ignored on macOS. */
+  titleBarSymbolColor: string
+}
 
 export interface VaultRecord {
   username: string

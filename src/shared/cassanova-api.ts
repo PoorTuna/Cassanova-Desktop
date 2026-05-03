@@ -3,6 +3,7 @@ import type {
   CertMismatchPayload,
   CertPromptPayload,
   CertPromptResponse,
+  ChromeColorsPayload,
   LoginResult,
   MenuAction,
   UpdaterStatus,
@@ -23,6 +24,7 @@ export interface CassanovaWindowAPI {
   close: () => void
   isMaximized: () => Promise<boolean>
   onMaximizeChanged: (callback: (maximized: boolean) => void) => () => void
+  setChromeColors: (payload: ChromeColorsPayload) => void
 }
 
 export interface CassanovaAppAPI {

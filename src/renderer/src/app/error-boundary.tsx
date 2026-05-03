@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="flex h-screen items-center justify-center bg-background p-8 text-foreground">
+        <div className="flex h-screen items-center justify-center bg-cass-app p-8 text-cass-text-primary">
           <div className="max-w-md text-center">
             <h1 className="mb-2 font-display text-2xl font-semibold">
               Application error

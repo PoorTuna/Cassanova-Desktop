@@ -1,7 +1,21 @@
 import { resolveTheme, themeCssVars } from '@shared/themes'
+import { cassanova } from '@/lib/ipc'
 import { useUiStore } from './ui-store'
 
 const PREFERS_DARK = '(prefers-color-scheme: dark)'
+
+function pushChromeColors(theme: ReturnType<typeof resolveTheme>): void {
+  const [bg, , , text] = theme.swatches
+  try {
+    cassanova().window.setChromeColors({
+      background: bg,
+      titleBarColor: bg,
+      titleBarSymbolColor: text,
+    })
+  } catch {
+    // Preload may not be ready on first paint; the next theme change retries.
+  }
+}
 
 function applyTheme(theme: string, prefersDark: boolean): void {
   const resolved = resolveTheme(theme, prefersDark)
@@ -14,6 +28,8 @@ function applyTheme(theme: string, prefersDark: boolean): void {
   for (const [name, value] of Object.entries(vars)) {
     html.style.setProperty(name, value)
   }
+
+  pushChromeColors(resolved)
 }
 
 export function startThemeBridge(): void {

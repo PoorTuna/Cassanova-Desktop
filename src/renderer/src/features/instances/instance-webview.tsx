@@ -11,7 +11,8 @@ import {
 import { RefreshCw } from 'lucide-react'
 import type { WebviewTag } from 'electron'
 import type { Instance } from '@shared/models'
-import { resolveFamily } from '@shared/themes'
+import { IpcChannels } from '@shared/ipc-contract'
+import { isKnownTheme, resolveFamily } from '@shared/themes'
 import { Button } from '@/components/ui/button'
 import { cassanova } from '@/lib/ipc'
 import { useUiStore } from '@/app/ui-store'
@@ -145,9 +146,18 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
         })
       }
       const onIpc = (event: Electron.IpcMessageEvent) => {
-        if (event.channel !== 'shortcut') return
-        const payload = event.args[0] as { key?: string } | undefined
-        if (payload?.key) onShortcut?.(payload.key)
+        if (event.channel === 'shortcut') {
+          const payload = event.args[0] as { key?: string } | undefined
+          if (payload?.key) onShortcut?.(payload.key)
+          return
+        }
+        if (event.channel === IpcChannels.webviewThemeChanged) {
+          const payload = event.args[0] as { theme?: string } | undefined
+          const next = payload?.theme
+          if (!next || !isKnownTheme(next)) return
+          if (useUiStore.getState().theme === next) return
+          useUiStore.getState().setTheme(next)
+        }
       }
 
       el.addEventListener('did-stop-loading', markReady)

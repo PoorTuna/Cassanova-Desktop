@@ -32,7 +32,7 @@ export function ShellLayout() {
       <TitleBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="relative flex-1 overflow-hidden bg-background">
+        <main className="relative flex-1 overflow-hidden bg-cass-app">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={pathname}
