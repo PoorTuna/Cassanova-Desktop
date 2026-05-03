@@ -1,10 +1,12 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { isKnownTheme, SYSTEM_THEME } from '@shared/themes'
 
 interface UiStore {
   paletteOpen: boolean
   sidebarCollapsed: boolean
   developerMode: boolean
+  theme: string
 
   openPalette: () => void
   closePalette: () => void
@@ -15,6 +17,7 @@ interface UiStore {
   setSidebarCollapsed: (collapsed: boolean) => void
 
   setDeveloperMode: (enabled: boolean) => void
+  setTheme: (theme: string) => void
 }
 
 export const useUiStore = create<UiStore>()(
@@ -23,6 +26,7 @@ export const useUiStore = create<UiStore>()(
       paletteOpen: false,
       sidebarCollapsed: false,
       developerMode: false,
+      theme: SYSTEM_THEME,
 
       openPalette: () => set({ paletteOpen: true }),
       closePalette: () => set({ paletteOpen: false }),
@@ -33,6 +37,10 @@ export const useUiStore = create<UiStore>()(
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 
       setDeveloperMode: (enabled) => set({ developerMode: enabled }),
+      setTheme: (theme) => {
+        if (!isKnownTheme(theme)) return
+        set({ theme })
+      },
     }),
     {
       name: 'cassanova-ui',
@@ -40,6 +48,7 @@ export const useUiStore = create<UiStore>()(
       partialize: (s) => ({
         sidebarCollapsed: s.sidebarCollapsed,
         developerMode: s.developerMode,
+        theme: s.theme,
       }),
     },
   ),

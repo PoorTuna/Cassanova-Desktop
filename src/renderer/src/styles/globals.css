@@ -32,6 +32,29 @@
     --ring: 197 81% 48%;
     --radius: 0.5rem;
   }
+
+  .light {
+    --background: 220 22% 97%;       /* #f5f7fa */
+    --foreground: 220 8% 12%;        /* #1a1d1f */
+    --muted: 220 14% 93%;            /* #e7eaef */
+    --muted-foreground: 220 6% 38%;  /* #5b5e64 */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 8% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 8% 12%;
+    --border: 220 13% 88%;
+    --input: 220 13% 88%;
+    --primary: 197 81% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 327 72% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 220 14% 93%;
+    --accent-foreground: 220 8% 12%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 197 81% 48%;
+    --radius: 0.5rem;
+  }
 }
 
 @layer base {
@@ -71,7 +94,7 @@
   /* Selection */
   ::selection {
     background: rgba(18, 135, 177, 0.3);
-    color: #f5f5f7;
+    color: var(--cass-text-primary);
   }
 }
 
@@ -107,4 +130,12 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.18);
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
 }

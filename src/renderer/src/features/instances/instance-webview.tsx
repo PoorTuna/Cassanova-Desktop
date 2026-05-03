@@ -11,8 +11,10 @@ import {
 import { RefreshCw } from 'lucide-react'
 import type { WebviewTag } from 'electron'
 import type { Instance } from '@shared/models'
+import { resolveFamily } from '@shared/themes'
 import { Button } from '@/components/ui/button'
 import { cassanova } from '@/lib/ipc'
+import { useUiStore } from '@/app/ui-store'
 import { partitionForInstance } from './partition'
 
 export interface InstanceWebviewHandle {
@@ -101,18 +103,38 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       const el = webviewRef.current
       if (!el) return
 
-      const markReady = () =>
+      const isReady = () => {
+        try {
+          return !el.isLoading()
+        } catch {
+          return false
+        }
+      }
+
+      const pushTheme = () => {
+        if (!isReady()) return
+        const theme = useUiStore.getState().theme
+        const family = resolveFamily(
+          theme,
+          window.matchMedia('(prefers-color-scheme: dark)').matches,
+        )
+        el.executeJavaScript(buildThemeScript(theme, family)).catch(() => {})
+      }
+
+      const markReady = () => {
         setState((prev) =>
           prev.kind === 'error' || prev.kind === 'ready' ? prev : { kind: 'ready' },
         )
+      }
       const onDomReady = () => {
         markReady()
         // Windows forced-colors mode (high-contrast / nativeTheme=dark interaction)
         // can override inline background colors on embedded pages. Opt the webview
         // out so inline styles like <span style="background:#XXX"> render as authored.
         el.insertCSS(
-          ':root { color-scheme: dark; forced-color-adjust: none; } *, *::before, *::after { forced-color-adjust: none !important; }',
+          ':root { forced-color-adjust: none; } *, *::before, *::after { forced-color-adjust: none !important; }',
         ).catch(() => {})
+        pushTheme()
       }
       const onFail = (event: Electron.DidFailLoadEvent) => {
         if (event.errorCode === -3) return
@@ -134,6 +156,12 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
       el.addEventListener('did-fail-load', onFail)
       el.addEventListener('ipc-message', onIpc)
 
+      const unsubscribeTheme = useUiStore.subscribe((s, prev) => {
+        if (s.theme !== prev.theme) pushTheme()
+      })
+      const media = window.matchMedia('(prefers-color-scheme: dark)')
+      media.addEventListener('change', pushTheme)
+
       try {
         if (!el.isLoading()) markReady()
       } catch {
@@ -146,6 +174,8 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
         el.removeEventListener('dom-ready', onDomReady)
         el.removeEventListener('did-fail-load', onFail)
         el.removeEventListener('ipc-message', onIpc)
+        unsubscribeTheme()
+        media.removeEventListener('change', pushTheme)
       }
     }, [onShortcut])
 
@@ -194,6 +224,31 @@ export const InstanceWebview = forwardRef<InstanceWebviewHandle, Props>(
     )
   },
 )
+
+function buildThemeScript(theme: string, family: 'dark' | 'light'): string {
+  // Runs inside the webview. Authoritative DOM ops first (so the live press
+  // always lands), then call Cassanova's window.applyTheme for any extra
+  // internal state it tracks. localStorage write keeps reloads consistent.
+  const safeTheme = JSON.stringify(theme)
+  const safeFamily = JSON.stringify(family)
+  return `(function() {
+    try {
+      var t = ${safeTheme};
+      var fam = ${safeFamily};
+      var cls = t === 'system' ? (fam + '-theme') : (t + '-theme');
+      try { localStorage.setItem('selectedTheme', t); } catch (_) {}
+      var html = document.documentElement;
+      html.style.colorScheme = fam;
+      Array.from(html.classList).forEach(function(c) {
+        if (c.endsWith('-theme')) html.classList.remove(c);
+      });
+      html.classList.add(cls);
+      if (typeof window.applyTheme === 'function') {
+        try { window.applyTheme(t); } catch (_) {}
+      }
+    } catch (_) {}
+  })();`
+}
 
 function ErrorState({
   url,

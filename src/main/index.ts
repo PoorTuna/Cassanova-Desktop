@@ -19,7 +19,10 @@ crashReporter.start({
   ignoreSystemCrashHandler: false,
 })
 
-nativeTheme.themeSource = 'dark'
+// Renderer drives the theme via class on <html> + injected CSS into webviews.
+// Leave nativeTheme on 'system' so prefers-color-scheme and OS chrome follow
+// the user's OS preference, and don't override the renderer's class.
+nativeTheme.themeSource = 'system'
 
 const log = getLogger('main')
 

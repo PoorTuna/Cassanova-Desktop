@@ -1,15 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { ShieldCheck, Trash2 } from 'lucide-react'
+import { Monitor, ShieldCheck, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  DARK_THEMES,
+  LIGHT_THEMES,
+  SYSTEM_THEME,
+  type ThemeOption,
+} from '@shared/themes'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { cassanova } from '@/lib/ipc'
 import { useUiStore } from '@/app/ui-store'
 import { useInstanceStore } from '@/features/instances/instance-store'
@@ -19,6 +20,8 @@ export function Settings() {
   const [version, setVersion] = useState<string>('—')
   const developerMode = useUiStore((s) => s.developerMode)
   const setDeveloperMode = useUiStore((s) => s.setDeveloperMode)
+  const theme = useUiStore((s) => s.theme)
+  const setTheme = useUiStore((s) => s.setTheme)
   const instances = useInstanceStore((s) => s.instances)
   const pinned = instances.filter((i) => i.pinnedCertFingerprint)
 
@@ -46,16 +49,17 @@ export function Settings() {
         </h1>
 
         <Section title="Appearance">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">Theme</Label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="cursor-not-allowed rounded-md border border-cass-border bg-cass-surface px-3 py-1.5 text-xs text-cass-text-muted">
-                  Dark
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>Only dark theme is available.</TooltipContent>
-            </Tooltip>
+          <div className="space-y-4">
+            <div className="flex items-baseline justify-between">
+              <Label className="text-sm">Theme</Label>
+              <span className="text-[11px] text-cass-text-muted">
+                Applies to chrome and all instances.
+              </span>
+            </div>
+            <ThemeGrid
+              selected={theme}
+              onSelect={setTheme}
+            />
           </div>
         </Section>
 
@@ -155,5 +159,130 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="text-sm text-cass-text-secondary">{label}</span>
       <span className="font-mono text-xs text-cass-text-primary">{value}</span>
     </div>
+  )
+}
+
+function ThemeGrid({
+  selected,
+  onSelect,
+}: {
+  selected: string
+  onSelect: (id: string) => void
+}) {
+  return (
+    <div className="space-y-4">
+      <SystemThemeCard active={selected === SYSTEM_THEME} onSelect={onSelect} />
+
+      <ThemeGroup
+        label="Dark"
+        themes={DARK_THEMES}
+        selected={selected}
+        onSelect={onSelect}
+      />
+
+      <ThemeGroup
+        label="Light"
+        themes={LIGHT_THEMES}
+        selected={selected}
+        onSelect={onSelect}
+      />
+    </div>
+  )
+}
+
+function ThemeGroup({
+  label,
+  themes,
+  selected,
+  onSelect,
+}: {
+  label: string
+  themes: ThemeOption[]
+  selected: string
+  onSelect: (id: string) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-cass-text-muted">
+        {label}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {themes.map((t) => (
+          <ThemeCard
+            key={t.id}
+            theme={t}
+            active={selected === t.id}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ThemeCard({
+  theme,
+  active,
+  onSelect,
+}: {
+  theme: ThemeOption
+  active: boolean
+  onSelect: (id: string) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(theme.id)}
+      aria-pressed={active}
+      className={[
+        'flex flex-col gap-2 rounded-md border p-2 text-left transition-colors',
+        active
+          ? 'border-cass-brand bg-cass-elevated ring-1 ring-cass-brand/40'
+          : 'border-cass-border bg-cass-app/40 hover:border-cass-border-strong hover:bg-cass-elevated',
+      ].join(' ')}
+    >
+      <div className="flex h-6 overflow-hidden rounded">
+        {theme.swatches.map((c, i) => (
+          <span
+            key={i}
+            className="flex-1"
+            style={{ background: c }}
+          />
+        ))}
+      </div>
+      <span className="truncate text-[11px] text-cass-text-primary">
+        {theme.label}
+      </span>
+    </button>
+  )
+}
+
+function SystemThemeCard({
+  active,
+  onSelect,
+}: {
+  active: boolean
+  onSelect: (id: string) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(SYSTEM_THEME)}
+      aria-pressed={active}
+      className={[
+        'flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors',
+        active
+          ? 'border-cass-brand bg-cass-elevated ring-1 ring-cass-brand/40'
+          : 'border-cass-border bg-cass-app/40 hover:border-cass-border-strong hover:bg-cass-elevated',
+      ].join(' ')}
+    >
+      <Monitor className="h-4 w-4 text-cass-text-secondary" />
+      <div className="min-w-0 flex-1">
+        <div className="text-sm text-cass-text-primary">System</div>
+        <div className="text-[11px] text-cass-text-muted">
+          Follow OS appearance preference.
+        </div>
+      </div>
+    </button>
   )
 }

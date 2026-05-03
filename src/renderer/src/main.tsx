@@ -3,10 +3,11 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
 import { router } from './app/router'
 import { Providers } from './app/providers'
+import { startThemeBridge } from './app/theme-bridge'
 import { DetachedLayout } from './layouts/detached-layout'
 import './styles/globals.css'
 
-document.documentElement.classList.add('dark')
+startThemeBridge()
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
