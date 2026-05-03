@@ -15,7 +15,7 @@ asarUnpack:
   - node_modules/keytar/**/*
 
 win:
-  icon: build/icon-square.png
+  icon: build/icon.png
   target:
     - target: nsis
       arch: [x64]
@@ -32,6 +32,7 @@ nsis:
   deleteAppDataOnUninstall: false
 
 mac:
+  icon: build/icon.png
   target:
     - target: dmg
       arch: [x64, arm64]
@@ -41,7 +42,7 @@ mac:
   identity: null
 
 linux:
-  icon: build/icon-square.png
+  icon: build/icon.png
   target:
     - target: AppImage
       arch: [x64]
