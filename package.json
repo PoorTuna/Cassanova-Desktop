@@ -1,6 +1,6 @@
 {
   "name": "cassanova-desktop",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Desktop client for managing multiple Cassanova instances",
   "main": "./out/main/index.js",
   "author": "PoorTuna",
